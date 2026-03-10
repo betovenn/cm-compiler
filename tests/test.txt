@@ -4,6 +4,8 @@ int main() {
     int 3noid;
     @;
 
+    /* another comment */
+
     while(i < 10) {
         i++;
     }

@@ -9,6 +9,12 @@ SYMBOL  [;:,\[\](){}+\-*/=<>|]
 
 %%
 
+[ \t\n\r\v\f]+          /* eat up whitespace */
+
+"//".* {} /* line comment */
+
+"/*"([^]|[][^/])"*/" {} /* */
+
 
 {KEYWORD} {
     printf("KEYWORD: %s\n", yytext);
@@ -22,19 +28,11 @@ SYMBOL  [;:,\[\](){}+\-*/=<>|]
     printf("NUM: %s\n", yytext);
 }
 
-
 {SYMBOL} {
     printf("SYMBOL: %s\n", yytext);
 }
-
-[ \t\n\r\v\f]+          /* eat up whitespace */
-
-"//".* { }
-
-"/"([^]|[][^/])"*/" { }
-
 . {
-    printf("Invalid token: %s\n", yytext);
+    printf("INVALID TOKEN: %s\n", yytext);
 }
 
 %%
