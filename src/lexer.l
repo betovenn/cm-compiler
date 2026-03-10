@@ -3,30 +3,39 @@
 %}
 
 KEYWORD (if|else|void|int|while|break|switch|default|case|return|endif)
-NUM     [0-9]*
 ID      [A-Za-z][A-Za-z0-9]*
+NUM     [0-9]*
 SYMBOL  [;:,\[\](){}+\-*/=<>|]
 
 %%
 
+
 {KEYWORD} {
     printf("KEYWORD: %s\n", yytext);
-}
-
-{NUM} {
-    printf("NUM: %s\n", yytext);
 }
 
 {ID} {
     printf("ID: %s\n", yytext);
 }
 
+{NUM} {
+    printf("NUM: %s\n", yytext);
+}
+
+
 {SYMBOL} {
     printf("SYMBOL: %s\n", yytext);
 }
 
-"{"[^{}\n]*"}"     /* eat up one-line comments */
 [ \t\n\r\v\f]+          /* eat up whitespace */
+
+"//".* { }
+
+"/"([^]|[][^/])"*/" { }
+
+. {
+    printf("Invalid token: %s\n", yytext);
+}
 
 %%
 

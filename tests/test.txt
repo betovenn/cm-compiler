@@ -1,5 +1,8 @@
 int main() {
+    //coment
     int i = 0;
+    int 3noid;
+    @;
 
     while(i < 10) {
         i++;
