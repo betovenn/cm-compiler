@@ -1,0 +1,4 @@
+int id1 = 125d;
+a = b + @;
+*/
+/* este comentario no se cierra
