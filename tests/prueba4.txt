@@ -1,0 +1,6 @@
+void test(int[] arr)
+{
+	arr[0]:=1;
+
+	return;
+}
