@@ -1,2 +1,0 @@
-4.	(3noid, Número inválido)
-5.	(@, Entrada no reconocida)

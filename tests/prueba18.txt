@@ -1,0 +1,21 @@
+int suma(int a, int b) {
+
+    return a + b;
+}
+
+void main(void) {
+
+    int x;
+
+    x = suma(5, 3);
+
+    while (x > 0) {
+
+        if (x == 2) {
+
+            return;
+        }
+
+        x = x - 1;
+    }
+}

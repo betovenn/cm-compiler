@@ -1,7 +1,1 @@
-void main(void) {
-    int valor = 10;
-    // Esto es un comentario de prueba
-    if (valor == 10) {
-        return;
-    }
-}
+int x;
