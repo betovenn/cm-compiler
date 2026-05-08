@@ -1,0 +1,12 @@
+/*
+comentario largo
+*/
+
+void main(void) {
+
+    // comentario simple
+
+    int x;
+
+    x = 1;
+}
