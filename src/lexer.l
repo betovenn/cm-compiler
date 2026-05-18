@@ -14,6 +14,12 @@ FILE *lex_errors;
 void printToken(const char *type,const char *lexeme);
 void printError(const char *lexeme,const char *msg);
 
+#define YY_USER_ACTION \
+    yylloc.first_line = lineno; \
+    yylloc.last_line = lineno; \
+    yylloc.first_column = 1; \
+    yylloc.last_column = 1;
+
 %}
 
 %x COMMENT
