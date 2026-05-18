@@ -12,15 +12,21 @@ extern FILE *yyin;
 extern char *yytext;
 
 void yyerror(const char *s);
+static void set_syntax_context(const char *context);
+static void clear_syntax_context(void);
 
 TreeNode *savedTree;
 
 FILE *syntax_errors;
 FILE *ast_file;
 
+static const char *syntax_context = NULL;
+
 %}
 
-%define parse.error verbose
+%define parse.error detailed
+%define parse.lac full
+%locations
 
 %code requires {
     #include "ast.h"
@@ -244,7 +250,6 @@ statement
 
     | error SEMI
         {
-            yyerror("Sentencia inválida");
             yyerrok;
             $$ = NULL;
         }
@@ -263,31 +268,77 @@ expression_stmt
     ;
 
 selection_stmt
-    : IF LPAREN expression RPAREN statement %prec LOWER_THAN_ELSE
+    : IF LPAREN if_condition_context expression RPAREN clear_condition_context statement %prec LOWER_THAN_ELSE
         {
             $$ = newStmtNode(IfK);
 
-            $$->child[0] = $3;
-            $$->child[1] = $5;
+            $$->child[0] = $4;
+            $$->child[1] = $7;
         }
 
-    | IF LPAREN expression RPAREN statement ELSE statement
+    | IF LPAREN if_condition_context expression RPAREN clear_condition_context statement ELSE statement
         {
             $$ = newStmtNode(IfK);
 
-            $$->child[0] = $3;
-            $$->child[1] = $5;
-            $$->child[2] = $7;
+            $$->child[0] = $4;
+            $$->child[1] = $7;
+            $$->child[2] = $9;
+        }
+
+    | IF LPAREN if_condition_context error RPAREN clear_condition_context statement %prec LOWER_THAN_ELSE
+        {
+            yyerrok;
+
+            $$ = newStmtNode(IfK);
+            $$->child[1] = $7;
+        }
+
+    | IF LPAREN if_condition_context error RPAREN clear_condition_context statement ELSE statement
+        {
+            yyerrok;
+
+            $$ = newStmtNode(IfK);
+            $$->child[1] = $7;
+            $$->child[2] = $9;
         }
     ;
 
 iteration_stmt
-    : WHILE LPAREN expression RPAREN statement
+    : WHILE LPAREN while_condition_context expression RPAREN clear_condition_context statement
         {
             $$ = newStmtNode(WhileK);
 
-            $$->child[0] = $3;
-            $$->child[1] = $5;
+            $$->child[0] = $4;
+            $$->child[1] = $7;
+        }
+
+    | WHILE LPAREN while_condition_context error RPAREN clear_condition_context statement
+        {
+            yyerrok;
+
+            $$ = newStmtNode(WhileK);
+            $$->child[1] = $7;
+        }
+    ;
+
+if_condition_context
+    :
+        {
+            set_syntax_context("en la condicion del if");
+        }
+    ;
+
+while_condition_context
+    :
+        {
+            set_syntax_context("en la condicion del while");
+        }
+    ;
+
+clear_condition_context
+    :
+        {
+            clear_syntax_context();
         }
     ;
 
@@ -506,15 +557,41 @@ arg_list
 
 %%
 
+static void set_syntax_context(const char *context) {
+
+    syntax_context = context;
+}
+
+static void clear_syntax_context(void) {
+
+    syntax_context = NULL;
+}
+
 void yyerror(const char *s) {
 
-    fprintf(
-        syntax_errors,
-        "Linea %d: %s cerca de '%s'\n",
-        lineno,
-        s,
-        yytext
-    );
+    int line = yylloc.first_line > 0 ? yylloc.first_line : lineno;
+
+    if(syntax_context != NULL) {
+
+        fprintf(
+            syntax_errors,
+            "Linea %d: %s %s cerca de '%s'\n",
+            line,
+            s,
+            syntax_context,
+            yytext
+        );
+    }
+    else {
+
+        fprintf(
+            syntax_errors,
+            "Linea %d: %s cerca de '%s'\n",
+            line,
+            s,
+            yytext
+        );
+    }
 }
 
 int main(int argc,char *argv[]) {
