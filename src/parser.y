@@ -6,6 +6,7 @@
 
 #include "ast.h"
 #include "semantic.h"
+#include "codegen.h"
 
 extern int yylex();
 extern int lineno;
@@ -15,7 +16,7 @@ extern char *yytext;
 void yyerror(const char *s);
 static void set_syntax_context(const char *context);
 static void clear_syntax_context(void);
-static void write_summary(const char *input_file, int parse_result, int semantic_errors);
+static void write_summary(const char *input_file, int parse_result, int semantic_errors, int intermediate_generated, int intermediate_instructions);
 
 TreeNode *savedTree;
 
@@ -23,6 +24,7 @@ FILE *syntax_errors;
 FILE *ast_file;
 FILE *semantic_file;
 FILE *summary_file;
+FILE *code_file;
 
 static const char *syntax_context = NULL;
 static int syntax_error_count = 0;
@@ -601,7 +603,7 @@ void yyerror(const char *s) {
     }
 }
 
-static void write_summary(const char *input_file, int parse_result, int semantic_errors) {
+static void write_summary(const char *input_file, int parse_result, int semantic_errors, int intermediate_generated, int intermediate_instructions) {
 
     extern int lex_error_count;
     extern int token_count;
@@ -622,12 +624,18 @@ static void write_summary(const char *input_file, int parse_result, int semantic
     if(syntax_error_count > 0 || parse_result != 0 || savedTree == NULL) {
         fprintf(summary_file,"AST          %-12s revise output/SintaxErr.txt\n","no generado");
         fprintf(summary_file,"Semantico    %-12s requiere AST valido\n","omitido");
+        fprintf(summary_file,"Intermedio   %-12s requiere AST valido\n","omitido");
     }
     else {
         fprintf(summary_file,"AST          %-12s output/Arbol.txt\n","generado");
         fprintf(summary_file,"Semantico    %-12s %d error(es)\n",
                 semantic_errors == 0 ? "correcto" : "con errores",
                 semantic_errors);
+        fprintf(summary_file,"Intermedio   %-12s %s\n",
+                intermediate_generated ? "generado" : "omitido",
+                intermediate_generated ? "output/CodigoIntermedio.txt" : "requiere semantica correcta");
+        if(intermediate_generated)
+            fprintf(summary_file,"              %-12s %d instruccion(es)\n","",intermediate_instructions);
     }
 
     fprintf(summary_file,"\nArchivos generados:\n");
@@ -636,6 +644,7 @@ static void write_summary(const char *input_file, int parse_result, int semantic
     fprintf(summary_file,"- Sintactico: output/SintaxErr.txt\n");
     fprintf(summary_file,"- AST:        output/Arbol.txt\n");
     fprintf(summary_file,"- Semantico:  output/Semantic.txt\n");
+    fprintf(summary_file,"- Intermedio: output/CodigoIntermedio.txt\n");
 }
 
 int main(int argc,char *argv[]) {
@@ -646,6 +655,8 @@ int main(int argc,char *argv[]) {
     extern void finishTokenOutput(void);
     int parse_result;
     int semantic_errors = 0;
+    int intermediate_generated = 0;
+    int intermediate_instructions = 0;
     const char *input_file = argc > 1 ? argv[1] : NULL;
 
     tokens_file = fopen("output/tokens.txt","w");
@@ -656,6 +667,7 @@ int main(int argc,char *argv[]) {
     ast_file = fopen("output/Arbol.txt","w");
     semantic_file = fopen("output/Semantic.txt","w");
     summary_file = fopen("output/Resumen.txt","w");
+    code_file = fopen("output/CodigoIntermedio.txt","w");
 
     fprintf(tokens_file,"=== TOKENS POR LINEA ===\n\n");
     fprintf(lex_errors,"=== ANALISIS LEXICO ===\n\n");
@@ -697,14 +709,29 @@ int main(int argc,char *argv[]) {
         fprintf(semantic_file,"Estado: omitido\n\n");
         fprintf(semantic_file,"No se ejecuto el analisis semantico porque no existe un AST valido.\n");
         fprintf(semantic_file,"Revise output/SintaxErr.txt.\n");
+
+        fprintf(code_file,"=== CODIGO INTERMEDIO ===\n\n");
+        fprintf(code_file,"Estado: omitido\n\n");
+        fprintf(code_file,"Codigo intermedio omitido por errores previos.\n");
     }
     else {
         fprintf(ast_file,"Estado: generado\n\n");
         printTree(savedTree,0,ast_file);
         semantic_errors = semanticAnalyze(savedTree,semantic_file);
+
+        if(semantic_errors == 0) {
+            intermediate_instructions = generateIntermediateCode(savedTree,code_file);
+            intermediate_generated = 1;
+        }
+        else {
+            fprintf(code_file,"=== CODIGO INTERMEDIO ===\n\n");
+            fprintf(code_file,"Estado: omitido\n\n");
+            fprintf(code_file,"Codigo intermedio omitido por errores previos.\n");
+            fprintf(code_file,"Revise output/Semantic.txt.\n");
+        }
     }
 
-    write_summary(input_file, parse_result, semantic_errors);
+    write_summary(input_file, parse_result, semantic_errors, intermediate_generated, intermediate_instructions);
 
     fclose(tokens_file);
     fclose(lex_errors);
@@ -712,6 +739,7 @@ int main(int argc,char *argv[]) {
     fclose(ast_file);
     fclose(semantic_file);
     fclose(summary_file);
+    fclose(code_file);
 
     return 0;
 }

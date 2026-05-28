@@ -5,11 +5,8 @@ Tabla de simbolos:
 +---------+----------+------+--------------------+------------------------------+
 | Alcance | Clase    | Tipo | Nombre             | Parametros                   |
 +---------+----------+------+--------------------+------------------------------+
-| 0       | funcion  | int  | suma               | int a, int b                 |
 | 0       | funcion  | void | main               |                              |
-| 1       | variable | int  | a                  |                              |
-| 1       | variable | int  | b                  |                              |
-| 2       | variable | int  | x                  |                              |
+| 2       | variable | int  | i                  |                              |
 +---------+----------+------+--------------------+------------------------------+
 
 Estado: correcto
