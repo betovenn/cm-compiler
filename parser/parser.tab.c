@@ -76,6 +76,7 @@
 
 #include "ast.h"
 #include "semantic.h"
+#include "codegen.h"
 
 extern int yylex();
 extern int lineno;
@@ -85,7 +86,7 @@ extern char *yytext;
 void yyerror(const char *s);
 static void set_syntax_context(const char *context);
 static void clear_syntax_context(void);
-static void write_summary(const char *input_file, int parse_result, int semantic_errors);
+static void write_summary(const char *input_file, int parse_result, int semantic_errors, int intermediate_generated, int intermediate_instructions);
 
 TreeNode *savedTree;
 
@@ -93,12 +94,13 @@ FILE *syntax_errors;
 FILE *ast_file;
 FILE *semantic_file;
 FILE *summary_file;
+FILE *code_file;
 
 static const char *syntax_context = NULL;
 static int syntax_error_count = 0;
 
 
-#line 102 "parser/parser.tab.c"
+#line 104 "parser/parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -555,13 +557,13 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    78,    78,    85,   102,   109,   114,   121,   122,   126,
-     136,   149,   151,   158,   170,   177,   187,   197,   216,   222,
-     241,   247,   249,   251,   253,   255,   257,   265,   270,   277,
-     285,   294,   302,   313,   321,   332,   339,   346,   352,   357,
-     366,   374,   378,   388,   398,   408,   418,   428,   438,   445,
-     455,   465,   472,   482,   492,   499,   504,   506,   508,   517,
-     526,   537,   540,   546,   558
+       0,    80,    80,    87,   104,   111,   116,   123,   124,   128,
+     138,   151,   153,   160,   172,   179,   189,   199,   218,   224,
+     243,   249,   251,   253,   255,   257,   259,   267,   272,   279,
+     287,   296,   304,   315,   323,   334,   341,   348,   354,   359,
+     368,   376,   380,   390,   400,   410,   420,   430,   440,   447,
+     457,   467,   474,   484,   494,   501,   506,   508,   510,   519,
+     528,   539,   542,   548,   560
 };
 #endif
 
@@ -1791,15 +1793,15 @@ yyreduce:
     switch (yyn)
       {
   case 2: /* program: declaration_list  */
-#line 79 "src/parser.y"
+#line 81 "src/parser.y"
         {
             savedTree = (yyvsp[0].tree);
         }
-#line 1799 "parser/parser.tab.c"
+#line 1801 "parser/parser.tab.c"
     break;
 
   case 3: /* declaration_list: declaration_list declaration  */
-#line 86 "src/parser.y"
+#line 88 "src/parser.y"
         {
             TreeNode *t = (yyvsp[-1].tree);
 
@@ -1815,46 +1817,46 @@ yyreduce:
             else
                 (yyval.tree) = (yyvsp[0].tree);
         }
-#line 1819 "parser/parser.tab.c"
+#line 1821 "parser/parser.tab.c"
     break;
 
   case 4: /* declaration_list: declaration  */
-#line 103 "src/parser.y"
+#line 105 "src/parser.y"
         {
             (yyval.tree) = (yyvsp[0].tree);
         }
-#line 1827 "parser/parser.tab.c"
+#line 1829 "parser/parser.tab.c"
     break;
 
   case 5: /* type_specifier: INT  */
-#line 110 "src/parser.y"
+#line 112 "src/parser.y"
         {
             (yyval.string) = "int";
         }
-#line 1835 "parser/parser.tab.c"
+#line 1837 "parser/parser.tab.c"
     break;
 
   case 6: /* type_specifier: VOID  */
-#line 115 "src/parser.y"
+#line 117 "src/parser.y"
         {
             (yyval.string) = "void";
         }
-#line 1843 "parser/parser.tab.c"
+#line 1845 "parser/parser.tab.c"
     break;
 
   case 9: /* var_declaration: type_specifier ID SEMI  */
-#line 127 "src/parser.y"
+#line 129 "src/parser.y"
         {
             (yyval.tree) = newDeclNode(VarDeclK);
 
             (yyval.tree)->attr = (yyvsp[-1].string);
             (yyval.tree)->type = (yyvsp[-2].string);
         }
-#line 1854 "parser/parser.tab.c"
+#line 1856 "parser/parser.tab.c"
     break;
 
   case 10: /* fun_declaration: type_specifier ID LPAREN params RPAREN compound_stmt  */
-#line 137 "src/parser.y"
+#line 139 "src/parser.y"
         {
             (yyval.tree) = newDeclNode(FunDeclK);
 
@@ -1864,19 +1866,19 @@ yyreduce:
             (yyval.tree)->child[0] = (yyvsp[-2].tree);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 1868 "parser/parser.tab.c"
+#line 1870 "parser/parser.tab.c"
     break;
 
   case 12: /* params: VOID  */
-#line 152 "src/parser.y"
+#line 154 "src/parser.y"
         {
             (yyval.tree) = NULL;
         }
-#line 1876 "parser/parser.tab.c"
+#line 1878 "parser/parser.tab.c"
     break;
 
   case 13: /* param_list: param_list COMMA param  */
-#line 159 "src/parser.y"
+#line 161 "src/parser.y"
         {
             TreeNode *t = (yyvsp[-2].tree);
 
@@ -1887,41 +1889,41 @@ yyreduce:
 
             (yyval.tree) = (yyvsp[-2].tree);
         }
-#line 1891 "parser/parser.tab.c"
+#line 1893 "parser/parser.tab.c"
     break;
 
   case 14: /* param_list: param  */
-#line 171 "src/parser.y"
+#line 173 "src/parser.y"
         {
             (yyval.tree) = (yyvsp[0].tree);
         }
-#line 1899 "parser/parser.tab.c"
+#line 1901 "parser/parser.tab.c"
     break;
 
   case 15: /* param: INT ID  */
-#line 178 "src/parser.y"
+#line 180 "src/parser.y"
         {
             (yyval.tree) = newDeclNode(ParamK);
 
             (yyval.tree)->attr = (yyvsp[0].string);
             (yyval.tree)->type = "int";
         }
-#line 1910 "parser/parser.tab.c"
+#line 1912 "parser/parser.tab.c"
     break;
 
   case 16: /* compound_stmt: LBRACE local_declarations statement_list RBRACE  */
-#line 188 "src/parser.y"
+#line 190 "src/parser.y"
         {
             (yyval.tree) = newStmtNode(CompoundK);
 
             (yyval.tree)->child[0] = (yyvsp[-2].tree);
             (yyval.tree)->child[1] = (yyvsp[-1].tree);
         }
-#line 1921 "parser/parser.tab.c"
+#line 1923 "parser/parser.tab.c"
     break;
 
   case 17: /* local_declarations: local_declarations var_declaration  */
-#line 198 "src/parser.y"
+#line 200 "src/parser.y"
         {
             TreeNode *t = (yyvsp[-1].tree);
 
@@ -1938,19 +1940,19 @@ yyreduce:
                 (yyval.tree) = (yyvsp[-1].tree);
             }
         }
-#line 1942 "parser/parser.tab.c"
+#line 1944 "parser/parser.tab.c"
     break;
 
   case 18: /* local_declarations: %empty  */
-#line 216 "src/parser.y"
+#line 218 "src/parser.y"
         {
             (yyval.tree) = NULL;
         }
-#line 1950 "parser/parser.tab.c"
+#line 1952 "parser/parser.tab.c"
     break;
 
   case 19: /* statement_list: statement_list statement  */
-#line 223 "src/parser.y"
+#line 225 "src/parser.y"
         {
             TreeNode *t = (yyvsp[-1].tree);
 
@@ -1967,55 +1969,55 @@ yyreduce:
                 (yyval.tree) = (yyvsp[-1].tree);
             }
         }
-#line 1971 "parser/parser.tab.c"
+#line 1973 "parser/parser.tab.c"
     break;
 
   case 20: /* statement_list: %empty  */
-#line 241 "src/parser.y"
+#line 243 "src/parser.y"
         {
             (yyval.tree) = NULL;
         }
-#line 1979 "parser/parser.tab.c"
+#line 1981 "parser/parser.tab.c"
     break;
 
   case 26: /* statement: error SEMI  */
-#line 258 "src/parser.y"
+#line 260 "src/parser.y"
         {
             yyerrok;
             (yyval.tree) = NULL;
         }
-#line 1988 "parser/parser.tab.c"
+#line 1990 "parser/parser.tab.c"
     break;
 
   case 27: /* expression_stmt: expression SEMI  */
-#line 266 "src/parser.y"
+#line 268 "src/parser.y"
         {
             (yyval.tree) = (yyvsp[-1].tree);
         }
-#line 1996 "parser/parser.tab.c"
+#line 1998 "parser/parser.tab.c"
     break;
 
   case 28: /* expression_stmt: SEMI  */
-#line 271 "src/parser.y"
+#line 273 "src/parser.y"
         {
             (yyval.tree) = NULL;
         }
-#line 2004 "parser/parser.tab.c"
+#line 2006 "parser/parser.tab.c"
     break;
 
   case 29: /* selection_stmt: IF LPAREN if_condition_context expression RPAREN clear_condition_context statement  */
-#line 278 "src/parser.y"
+#line 280 "src/parser.y"
         {
             (yyval.tree) = newStmtNode(IfK);
 
             (yyval.tree)->child[0] = (yyvsp[-3].tree);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2015 "parser/parser.tab.c"
+#line 2017 "parser/parser.tab.c"
     break;
 
   case 30: /* selection_stmt: IF LPAREN if_condition_context expression RPAREN clear_condition_context statement ELSE statement  */
-#line 286 "src/parser.y"
+#line 288 "src/parser.y"
         {
             (yyval.tree) = newStmtNode(IfK);
 
@@ -2023,22 +2025,22 @@ yyreduce:
             (yyval.tree)->child[1] = (yyvsp[-2].tree);
             (yyval.tree)->child[2] = (yyvsp[0].tree);
         }
-#line 2027 "parser/parser.tab.c"
+#line 2029 "parser/parser.tab.c"
     break;
 
   case 31: /* selection_stmt: IF LPAREN if_condition_context error RPAREN clear_condition_context statement  */
-#line 295 "src/parser.y"
+#line 297 "src/parser.y"
         {
             yyerrok;
 
             (yyval.tree) = newStmtNode(IfK);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2038 "parser/parser.tab.c"
+#line 2040 "parser/parser.tab.c"
     break;
 
   case 32: /* selection_stmt: IF LPAREN if_condition_context error RPAREN clear_condition_context statement ELSE statement  */
-#line 303 "src/parser.y"
+#line 305 "src/parser.y"
         {
             yyerrok;
 
@@ -2046,86 +2048,86 @@ yyreduce:
             (yyval.tree)->child[1] = (yyvsp[-2].tree);
             (yyval.tree)->child[2] = (yyvsp[0].tree);
         }
-#line 2050 "parser/parser.tab.c"
+#line 2052 "parser/parser.tab.c"
     break;
 
   case 33: /* iteration_stmt: WHILE LPAREN while_condition_context expression RPAREN clear_condition_context statement  */
-#line 314 "src/parser.y"
+#line 316 "src/parser.y"
         {
             (yyval.tree) = newStmtNode(WhileK);
 
             (yyval.tree)->child[0] = (yyvsp[-3].tree);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2061 "parser/parser.tab.c"
+#line 2063 "parser/parser.tab.c"
     break;
 
   case 34: /* iteration_stmt: WHILE LPAREN while_condition_context error RPAREN clear_condition_context statement  */
-#line 322 "src/parser.y"
+#line 324 "src/parser.y"
         {
             yyerrok;
 
             (yyval.tree) = newStmtNode(WhileK);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2072 "parser/parser.tab.c"
+#line 2074 "parser/parser.tab.c"
     break;
 
   case 35: /* if_condition_context: %empty  */
-#line 332 "src/parser.y"
+#line 334 "src/parser.y"
         {
             set_syntax_context("en la condicion del if");
         }
-#line 2080 "parser/parser.tab.c"
+#line 2082 "parser/parser.tab.c"
     break;
 
   case 36: /* while_condition_context: %empty  */
-#line 339 "src/parser.y"
+#line 341 "src/parser.y"
         {
             set_syntax_context("en la condicion del while");
         }
-#line 2088 "parser/parser.tab.c"
+#line 2090 "parser/parser.tab.c"
     break;
 
   case 37: /* clear_condition_context: %empty  */
-#line 346 "src/parser.y"
+#line 348 "src/parser.y"
         {
             clear_syntax_context();
         }
-#line 2096 "parser/parser.tab.c"
+#line 2098 "parser/parser.tab.c"
     break;
 
   case 38: /* return_stmt: RETURN SEMI  */
-#line 353 "src/parser.y"
+#line 355 "src/parser.y"
         {
             (yyval.tree) = newStmtNode(ReturnK);
         }
-#line 2104 "parser/parser.tab.c"
+#line 2106 "parser/parser.tab.c"
     break;
 
   case 39: /* return_stmt: RETURN expression SEMI  */
-#line 358 "src/parser.y"
+#line 360 "src/parser.y"
         {
             (yyval.tree) = newStmtNode(ReturnK);
 
             (yyval.tree)->child[0] = (yyvsp[-1].tree);
         }
-#line 2114 "parser/parser.tab.c"
+#line 2116 "parser/parser.tab.c"
     break;
 
   case 40: /* expression: var ASSIGN expression  */
-#line 367 "src/parser.y"
+#line 369 "src/parser.y"
         {
             (yyval.tree) = newStmtNode(AssignK);
 
             (yyval.tree)->child[0] = (yyvsp[-2].tree);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2125 "parser/parser.tab.c"
+#line 2127 "parser/parser.tab.c"
     break;
 
   case 42: /* simple_expression: additive_expression LT additive_expression  */
-#line 379 "src/parser.y"
+#line 381 "src/parser.y"
         {
             (yyval.tree) = newExpNode(OpK);
 
@@ -2134,11 +2136,11 @@ yyreduce:
             (yyval.tree)->child[0] = (yyvsp[-2].tree);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2138 "parser/parser.tab.c"
+#line 2140 "parser/parser.tab.c"
     break;
 
   case 43: /* simple_expression: additive_expression LE additive_expression  */
-#line 389 "src/parser.y"
+#line 391 "src/parser.y"
         {
             (yyval.tree) = newExpNode(OpK);
 
@@ -2147,11 +2149,11 @@ yyreduce:
             (yyval.tree)->child[0] = (yyvsp[-2].tree);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2151 "parser/parser.tab.c"
+#line 2153 "parser/parser.tab.c"
     break;
 
   case 44: /* simple_expression: additive_expression GT additive_expression  */
-#line 399 "src/parser.y"
+#line 401 "src/parser.y"
         {
             (yyval.tree) = newExpNode(OpK);
 
@@ -2160,11 +2162,11 @@ yyreduce:
             (yyval.tree)->child[0] = (yyvsp[-2].tree);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2164 "parser/parser.tab.c"
+#line 2166 "parser/parser.tab.c"
     break;
 
   case 45: /* simple_expression: additive_expression GE additive_expression  */
-#line 409 "src/parser.y"
+#line 411 "src/parser.y"
         {
             (yyval.tree) = newExpNode(OpK);
 
@@ -2173,11 +2175,11 @@ yyreduce:
             (yyval.tree)->child[0] = (yyvsp[-2].tree);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2177 "parser/parser.tab.c"
+#line 2179 "parser/parser.tab.c"
     break;
 
   case 46: /* simple_expression: additive_expression EQ additive_expression  */
-#line 419 "src/parser.y"
+#line 421 "src/parser.y"
         {
             (yyval.tree) = newExpNode(OpK);
 
@@ -2186,11 +2188,11 @@ yyreduce:
             (yyval.tree)->child[0] = (yyvsp[-2].tree);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2190 "parser/parser.tab.c"
+#line 2192 "parser/parser.tab.c"
     break;
 
   case 47: /* simple_expression: additive_expression NE additive_expression  */
-#line 429 "src/parser.y"
+#line 431 "src/parser.y"
         {
             (yyval.tree) = newExpNode(OpK);
 
@@ -2199,19 +2201,19 @@ yyreduce:
             (yyval.tree)->child[0] = (yyvsp[-2].tree);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2203 "parser/parser.tab.c"
+#line 2205 "parser/parser.tab.c"
     break;
 
   case 48: /* simple_expression: additive_expression  */
-#line 439 "src/parser.y"
+#line 441 "src/parser.y"
         {
             (yyval.tree) = (yyvsp[0].tree);
         }
-#line 2211 "parser/parser.tab.c"
+#line 2213 "parser/parser.tab.c"
     break;
 
   case 49: /* additive_expression: additive_expression PLUS term  */
-#line 446 "src/parser.y"
+#line 448 "src/parser.y"
         {
             (yyval.tree) = newExpNode(OpK);
 
@@ -2220,11 +2222,11 @@ yyreduce:
             (yyval.tree)->child[0] = (yyvsp[-2].tree);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2224 "parser/parser.tab.c"
+#line 2226 "parser/parser.tab.c"
     break;
 
   case 50: /* additive_expression: additive_expression MINUS term  */
-#line 456 "src/parser.y"
+#line 458 "src/parser.y"
         {
             (yyval.tree) = newExpNode(OpK);
 
@@ -2233,19 +2235,19 @@ yyreduce:
             (yyval.tree)->child[0] = (yyvsp[-2].tree);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2237 "parser/parser.tab.c"
+#line 2239 "parser/parser.tab.c"
     break;
 
   case 51: /* additive_expression: term  */
-#line 466 "src/parser.y"
+#line 468 "src/parser.y"
         {
             (yyval.tree) = (yyvsp[0].tree);
         }
-#line 2245 "parser/parser.tab.c"
+#line 2247 "parser/parser.tab.c"
     break;
 
   case 52: /* term: term TIMES factor  */
-#line 473 "src/parser.y"
+#line 475 "src/parser.y"
         {
             (yyval.tree) = newExpNode(OpK);
 
@@ -2254,11 +2256,11 @@ yyreduce:
             (yyval.tree)->child[0] = (yyvsp[-2].tree);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2258 "parser/parser.tab.c"
+#line 2260 "parser/parser.tab.c"
     break;
 
   case 53: /* term: term OVER factor  */
-#line 483 "src/parser.y"
+#line 485 "src/parser.y"
         {
             (yyval.tree) = newExpNode(OpK);
 
@@ -2267,47 +2269,47 @@ yyreduce:
             (yyval.tree)->child[0] = (yyvsp[-2].tree);
             (yyval.tree)->child[1] = (yyvsp[0].tree);
         }
-#line 2271 "parser/parser.tab.c"
+#line 2273 "parser/parser.tab.c"
     break;
 
   case 54: /* term: factor  */
-#line 493 "src/parser.y"
+#line 495 "src/parser.y"
         {
             (yyval.tree) = (yyvsp[0].tree);
         }
-#line 2279 "parser/parser.tab.c"
+#line 2281 "parser/parser.tab.c"
     break;
 
   case 55: /* factor: LPAREN expression RPAREN  */
-#line 500 "src/parser.y"
+#line 502 "src/parser.y"
         {
             (yyval.tree) = (yyvsp[-1].tree);
         }
-#line 2287 "parser/parser.tab.c"
+#line 2289 "parser/parser.tab.c"
     break;
 
   case 58: /* factor: NUM  */
-#line 509 "src/parser.y"
+#line 511 "src/parser.y"
         {
             (yyval.tree) = newExpNode(ConstK);
 
             (yyval.tree)->attr = (yyvsp[0].string);
         }
-#line 2297 "parser/parser.tab.c"
+#line 2299 "parser/parser.tab.c"
     break;
 
   case 59: /* var: ID  */
-#line 518 "src/parser.y"
+#line 520 "src/parser.y"
         {
             (yyval.tree) = newExpNode(IdK);
 
             (yyval.tree)->attr = (yyvsp[0].string);
         }
-#line 2307 "parser/parser.tab.c"
+#line 2309 "parser/parser.tab.c"
     break;
 
   case 60: /* call: ID LPAREN args RPAREN  */
-#line 527 "src/parser.y"
+#line 529 "src/parser.y"
         {
             (yyval.tree) = newExpNode(CallK);
 
@@ -2315,19 +2317,19 @@ yyreduce:
 
             (yyval.tree)->child[0] = (yyvsp[-1].tree);
         }
-#line 2319 "parser/parser.tab.c"
+#line 2321 "parser/parser.tab.c"
     break;
 
   case 62: /* args: %empty  */
-#line 540 "src/parser.y"
+#line 542 "src/parser.y"
         {
             (yyval.tree) = NULL;
         }
-#line 2327 "parser/parser.tab.c"
+#line 2329 "parser/parser.tab.c"
     break;
 
   case 63: /* arg_list: arg_list COMMA expression  */
-#line 547 "src/parser.y"
+#line 549 "src/parser.y"
         {
             TreeNode *t = (yyvsp[-2].tree);
 
@@ -2338,19 +2340,19 @@ yyreduce:
 
             (yyval.tree) = (yyvsp[-2].tree);
         }
-#line 2342 "parser/parser.tab.c"
+#line 2344 "parser/parser.tab.c"
     break;
 
   case 64: /* arg_list: expression  */
-#line 559 "src/parser.y"
+#line 561 "src/parser.y"
         {
             (yyval.tree) = (yyvsp[0].tree);
         }
-#line 2350 "parser/parser.tab.c"
+#line 2352 "parser/parser.tab.c"
     break;
 
 
-#line 2354 "parser/parser.tab.c"
+#line 2356 "parser/parser.tab.c"
 
         default: break;
       }
@@ -2590,7 +2592,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 564 "src/parser.y"
+#line 566 "src/parser.y"
 
 
 static void set_syntax_context(const char *context) {
@@ -2631,7 +2633,7 @@ void yyerror(const char *s) {
     }
 }
 
-static void write_summary(const char *input_file, int parse_result, int semantic_errors) {
+static void write_summary(const char *input_file, int parse_result, int semantic_errors, int intermediate_generated, int intermediate_instructions) {
 
     extern int lex_error_count;
     extern int token_count;
@@ -2652,12 +2654,18 @@ static void write_summary(const char *input_file, int parse_result, int semantic
     if(syntax_error_count > 0 || parse_result != 0 || savedTree == NULL) {
         fprintf(summary_file,"AST          %-12s revise output/SintaxErr.txt\n","no generado");
         fprintf(summary_file,"Semantico    %-12s requiere AST valido\n","omitido");
+        fprintf(summary_file,"Intermedio   %-12s requiere AST valido\n","omitido");
     }
     else {
         fprintf(summary_file,"AST          %-12s output/Arbol.txt\n","generado");
         fprintf(summary_file,"Semantico    %-12s %d error(es)\n",
                 semantic_errors == 0 ? "correcto" : "con errores",
                 semantic_errors);
+        fprintf(summary_file,"Intermedio   %-12s %s\n",
+                intermediate_generated ? "generado" : "omitido",
+                intermediate_generated ? "output/CodigoIntermedio.txt" : "requiere semantica correcta");
+        if(intermediate_generated)
+            fprintf(summary_file,"              %-12s %d instruccion(es)\n","",intermediate_instructions);
     }
 
     fprintf(summary_file,"\nArchivos generados:\n");
@@ -2666,6 +2674,7 @@ static void write_summary(const char *input_file, int parse_result, int semantic
     fprintf(summary_file,"- Sintactico: output/SintaxErr.txt\n");
     fprintf(summary_file,"- AST:        output/Arbol.txt\n");
     fprintf(summary_file,"- Semantico:  output/Semantic.txt\n");
+    fprintf(summary_file,"- Intermedio: output/CodigoIntermedio.txt\n");
 }
 
 int main(int argc,char *argv[]) {
@@ -2676,6 +2685,8 @@ int main(int argc,char *argv[]) {
     extern void finishTokenOutput(void);
     int parse_result;
     int semantic_errors = 0;
+    int intermediate_generated = 0;
+    int intermediate_instructions = 0;
     const char *input_file = argc > 1 ? argv[1] : NULL;
 
     tokens_file = fopen("output/tokens.txt","w");
@@ -2686,6 +2697,7 @@ int main(int argc,char *argv[]) {
     ast_file = fopen("output/Arbol.txt","w");
     semantic_file = fopen("output/Semantic.txt","w");
     summary_file = fopen("output/Resumen.txt","w");
+    code_file = fopen("output/CodigoIntermedio.txt","w");
 
     fprintf(tokens_file,"=== TOKENS POR LINEA ===\n\n");
     fprintf(lex_errors,"=== ANALISIS LEXICO ===\n\n");
@@ -2727,14 +2739,29 @@ int main(int argc,char *argv[]) {
         fprintf(semantic_file,"Estado: omitido\n\n");
         fprintf(semantic_file,"No se ejecuto el analisis semantico porque no existe un AST valido.\n");
         fprintf(semantic_file,"Revise output/SintaxErr.txt.\n");
+
+        fprintf(code_file,"=== CODIGO INTERMEDIO ===\n\n");
+        fprintf(code_file,"Estado: omitido\n\n");
+        fprintf(code_file,"Codigo intermedio omitido por errores previos.\n");
     }
     else {
         fprintf(ast_file,"Estado: generado\n\n");
         printTree(savedTree,0,ast_file);
         semantic_errors = semanticAnalyze(savedTree,semantic_file);
+
+        if(semantic_errors == 0) {
+            intermediate_instructions = generateIntermediateCode(savedTree,code_file);
+            intermediate_generated = 1;
+        }
+        else {
+            fprintf(code_file,"=== CODIGO INTERMEDIO ===\n\n");
+            fprintf(code_file,"Estado: omitido\n\n");
+            fprintf(code_file,"Codigo intermedio omitido por errores previos.\n");
+            fprintf(code_file,"Revise output/Semantic.txt.\n");
+        }
     }
 
-    write_summary(input_file, parse_result, semantic_errors);
+    write_summary(input_file, parse_result, semantic_errors, intermediate_generated, intermediate_instructions);
 
     fclose(tokens_file);
     fclose(lex_errors);
@@ -2742,6 +2769,7 @@ int main(int argc,char *argv[]) {
     fclose(ast_file);
     fclose(semantic_file);
     fclose(summary_file);
+    fclose(code_file);
 
     return 0;
 }

@@ -17,10 +17,11 @@ all: dirs
 	lexer/lexer.yy.c \
 	src/ast.c \
 	src/semantic.c \
+	src/codegen.c \
 	-I./src \
 	-o bin/compiler
 
-	./bin/compiler tests/prueba18.txt
+	./bin/compiler tests/prueba7.txt
 
 dirs:
 	mkdir -p parser
@@ -61,6 +62,7 @@ clean:
 # 	lexer/lexer.yy.c \
 # 	src/ast.c \
 # 	src/semantic.c \
+# 	src/codegen.c \
 # 	$(CFLAGS) \
 # 	$(LDFLAGS) \
 # 	-o $(TARGET)

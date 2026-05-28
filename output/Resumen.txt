@@ -1,12 +1,14 @@
 === RESUMEN DE COMPILACION ===
-Entrada: tests/prueba18.txt
+Entrada: tests/prueba7.txt
 
 Etapa        Estado        Detalle
 -----------------------------------------------
-Lexico       correcto     0 error(es), 59 token(s)
+Lexico       correcto     0 error(es), 28 token(s)
 Sintactico   correcto     0 error(es)
 AST          generado     output/Arbol.txt
 Semantico    correcto     0 error(es)
+Intermedio   generado     output/CodigoIntermedio.txt
+                           9 instruccion(es)
 
 Archivos generados:
 - Tokens:     output/tokens.txt
@@ -14,3 +16,4 @@ Archivos generados:
 - Sintactico: output/SintaxErr.txt
 - AST:        output/Arbol.txt
 - Semantico:  output/Semantic.txt
+- Intermedio: output/CodigoIntermedio.txt
