@@ -5,6 +5,7 @@
 #include "ast.h"
 
 static int indentno = 0;
+extern int lineno;
 
 static void printSpaces(FILE *out) {
 
@@ -20,6 +21,7 @@ TreeNode* newStmtNode(StmtKind kind) {
         t->child[i] = NULL;
 
     t->sibling = NULL;
+    t->lineno = lineno;
 
     t->nodekind = StmtK;
     t->kind.stmt = kind;
@@ -38,6 +40,7 @@ TreeNode* newExpNode(ExpKind kind) {
         t->child[i] = NULL;
 
     t->sibling = NULL;
+    t->lineno = lineno;
 
     t->nodekind = ExpK;
     t->kind.exp = kind;
@@ -56,6 +59,7 @@ TreeNode* newDeclNode(DeclKind kind) {
         t->child[i] = NULL;
 
     t->sibling = NULL;
+    t->lineno = lineno;
 
     t->nodekind = DeclK;
     t->kind.decl = kind;

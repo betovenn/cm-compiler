@@ -1,0 +1,16 @@
+=== RESUMEN DE COMPILACION ===
+Entrada: tests/prueba18.txt
+
+Etapa        Estado        Detalle
+-----------------------------------------------
+Lexico       correcto     0 error(es), 59 token(s)
+Sintactico   correcto     0 error(es)
+AST          generado     output/Arbol.txt
+Semantico    correcto     0 error(es)
+
+Archivos generados:
+- Tokens:     output/tokens.txt
+- Lexico:     output/LexErr.txt
+- Sintactico: output/SintaxErr.txt
+- AST:        output/Arbol.txt
+- Semantico:  output/Semantic.txt

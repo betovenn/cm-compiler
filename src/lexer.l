@@ -11,8 +11,15 @@ int lineno = 1;
 FILE *tokens_file;
 FILE *lex_errors;
 
+int lex_error_count = 0;
+int token_count = 0;
+
 void printToken(const char *type,const char *lexeme);
 void printError(const char *lexeme,const char *msg);
+void finishTokenOutput(void);
+
+static int current_token_line = 0;
+static int tokens_in_current_line = 0;
 
 #define YY_USER_ACTION \
     yylloc.first_line = lineno; \
@@ -196,26 +203,54 @@ NUM        {DIGIT}+
 
 .                       {
 
-                            printError(yytext,"Símbolo inválido");
+                            printError(yytext,"Simbolo invalido");
                         }
 
 %%
 
 void printToken(const char *type,const char *lexeme) {
 
+    if(current_token_line != lineno) {
+
+        if(tokens_in_current_line > 0)
+            fprintf(tokens_file,"\n");
+
+        fprintf(tokens_file,"Linea %-4d: ",lineno);
+
+        current_token_line = lineno;
+        tokens_in_current_line = 0;
+    }
+
     fprintf(tokens_file,
-            "(%s,%s)\n",
+            "%s%s(\"%s\")",
+            tokens_in_current_line > 0 ? " " : "",
             type,
             lexeme);
+
+    tokens_in_current_line++;
+    token_count++;
 }
 
 void printError(const char *lexeme,const char *msg) {
 
     fprintf(lex_errors,
-            "Linea %d: %s -> %s\n",
+            "[Linea %-4d] %-10s -> %s\n",
             lineno,
             lexeme,
             msg);
+
+    lex_error_count++;
+}
+
+void finishTokenOutput(void) {
+
+    if(tokens_in_current_line > 0)
+        fprintf(tokens_file,"\n");
+
+    if(token_count == 0)
+        fprintf(tokens_file,"No se leyeron tokens.\n");
+
+    fprintf(tokens_file,"\nTotal de tokens: %d\n",token_count);
 }
 
 int yywrap() {

@@ -1,0 +1,36 @@
+=== ARBOL SINTACTICO ABSTRACTO ===
+
+Estado: generado
+
+FunDecl: suma
+  Param: a
+  Param: b
+  Compound
+    Return
+      Op: +
+        Id: a
+        Id: b
+FunDecl: main
+  Compound
+    VarDecl: x
+    Assign
+      Id: x
+      Call: suma
+        Const: 5
+        Const: 3
+    While
+      Op: >
+        Id: x
+        Const: 0
+      Compound
+        If
+          Op: <
+            Id: x
+            Const: 2
+          Compound
+            Return
+        Assign
+          Id: x
+          Op: -
+            Id: x
+            Const: 1

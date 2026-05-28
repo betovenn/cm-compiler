@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "ast.h"
+#include "semantic.h"
 
 extern int yylex();
 extern int lineno;
@@ -14,13 +15,17 @@ extern char *yytext;
 void yyerror(const char *s);
 static void set_syntax_context(const char *context);
 static void clear_syntax_context(void);
+static void write_summary(const char *input_file, int parse_result, int semantic_errors);
 
 TreeNode *savedTree;
 
 FILE *syntax_errors;
 FILE *ast_file;
+FILE *semantic_file;
+FILE *summary_file;
 
 static const char *syntax_context = NULL;
+static int syntax_error_count = 0;
 
 %}
 
@@ -174,6 +179,7 @@ param
             $$ = newDeclNode(ParamK);
 
             $$->attr = $2;
+            $$->type = "int";
         }
     ;
 
@@ -570,12 +576,13 @@ static void clear_syntax_context(void) {
 void yyerror(const char *s) {
 
     int line = yylloc.first_line > 0 ? yylloc.first_line : lineno;
+    syntax_error_count++;
 
     if(syntax_context != NULL) {
 
         fprintf(
             syntax_errors,
-            "Linea %d: %s %s cerca de '%s'\n",
+            "[Linea %-4d] %s %s cerca de '%s'\n",
             line,
             s,
             syntax_context,
@@ -586,7 +593,7 @@ void yyerror(const char *s) {
 
         fprintf(
             syntax_errors,
-            "Linea %d: %s cerca de '%s'\n",
+            "[Linea %-4d] %s cerca de '%s'\n",
             line,
             s,
             yytext
@@ -594,10 +601,52 @@ void yyerror(const char *s) {
     }
 }
 
+static void write_summary(const char *input_file, int parse_result, int semantic_errors) {
+
+    extern int lex_error_count;
+    extern int token_count;
+
+    fprintf(summary_file,"=== RESUMEN DE COMPILACION ===\n");
+    fprintf(summary_file,"Entrada: %s\n\n",input_file != NULL ? input_file : "stdin");
+
+    fprintf(summary_file,"Etapa        Estado        Detalle\n");
+    fprintf(summary_file,"-----------------------------------------------\n");
+    fprintf(summary_file,"Lexico       %-12s %d error(es), %d token(s)\n",
+            lex_error_count == 0 ? "correcto" : "con errores",
+            lex_error_count,
+            token_count);
+    fprintf(summary_file,"Sintactico   %-12s %d error(es)\n",
+            syntax_error_count == 0 && parse_result == 0 ? "correcto" : "con errores",
+            syntax_error_count);
+
+    if(syntax_error_count > 0 || parse_result != 0 || savedTree == NULL) {
+        fprintf(summary_file,"AST          %-12s revise output/SintaxErr.txt\n","no generado");
+        fprintf(summary_file,"Semantico    %-12s requiere AST valido\n","omitido");
+    }
+    else {
+        fprintf(summary_file,"AST          %-12s output/Arbol.txt\n","generado");
+        fprintf(summary_file,"Semantico    %-12s %d error(es)\n",
+                semantic_errors == 0 ? "correcto" : "con errores",
+                semantic_errors);
+    }
+
+    fprintf(summary_file,"\nArchivos generados:\n");
+    fprintf(summary_file,"- Tokens:     output/tokens.txt\n");
+    fprintf(summary_file,"- Lexico:     output/LexErr.txt\n");
+    fprintf(summary_file,"- Sintactico: output/SintaxErr.txt\n");
+    fprintf(summary_file,"- AST:        output/Arbol.txt\n");
+    fprintf(summary_file,"- Semantico:  output/Semantic.txt\n");
+}
+
 int main(int argc,char *argv[]) {
 
     extern FILE *tokens_file;
     extern FILE *lex_errors;
+    extern int lex_error_count;
+    extern void finishTokenOutput(void);
+    int parse_result;
+    int semantic_errors = 0;
+    const char *input_file = argc > 1 ? argv[1] : NULL;
 
     tokens_file = fopen("output/tokens.txt","w");
     lex_errors = fopen("output/LexErr.txt","w");
@@ -605,6 +654,12 @@ int main(int argc,char *argv[]) {
     syntax_errors = fopen("output/SintaxErr.txt","w");
 
     ast_file = fopen("output/Arbol.txt","w");
+    semantic_file = fopen("output/Semantic.txt","w");
+    summary_file = fopen("output/Resumen.txt","w");
+
+    fprintf(tokens_file,"=== TOKENS POR LINEA ===\n\n");
+    fprintf(lex_errors,"=== ANALISIS LEXICO ===\n\n");
+    fprintf(syntax_errors,"=== ANALISIS SINTACTICO ===\n\n");
 
     if(argc > 1) {
 
@@ -618,14 +673,45 @@ int main(int argc,char *argv[]) {
         }
     }
 
-    yyparse();
+    parse_result = yyparse();
 
-    printTree(savedTree,0,ast_file);
+    finishTokenOutput();
+
+    if(lex_error_count == 0)
+        fprintf(lex_errors,"No se encontraron errores lexicos.\n");
+
+    fprintf(lex_errors,"\nTotal de errores lexicos: %d\n",lex_error_count);
+
+    if(syntax_error_count == 0)
+        fprintf(syntax_errors,"No se encontraron errores sintacticos.\n");
+
+    fprintf(syntax_errors,"\nTotal de errores sintacticos: %d\n",syntax_error_count);
+
+    fprintf(ast_file,"=== ARBOL SINTACTICO ABSTRACTO ===\n\n");
+
+    if(syntax_error_count > 0 || parse_result != 0 || savedTree == NULL) {
+        fprintf(ast_file,"Estado: no generado\n\n");
+        fprintf(ast_file,"No se genero el AST porque el analisis sintactico fallo.\n");
+
+        fprintf(semantic_file,"=== ANALISIS SEMANTICO ===\n\n");
+        fprintf(semantic_file,"Estado: omitido\n\n");
+        fprintf(semantic_file,"No se ejecuto el analisis semantico porque no existe un AST valido.\n");
+        fprintf(semantic_file,"Revise output/SintaxErr.txt.\n");
+    }
+    else {
+        fprintf(ast_file,"Estado: generado\n\n");
+        printTree(savedTree,0,ast_file);
+        semantic_errors = semanticAnalyze(savedTree,semantic_file);
+    }
+
+    write_summary(input_file, parse_result, semantic_errors);
 
     fclose(tokens_file);
     fclose(lex_errors);
     fclose(syntax_errors);
     fclose(ast_file);
+    fclose(semantic_file);
+    fclose(summary_file);
 
     return 0;
 }

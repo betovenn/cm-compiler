@@ -1,0 +1,5 @@
+=== ANALISIS LEXICO ===
+
+No se encontraron errores lexicos.
+
+Total de errores lexicos: 0

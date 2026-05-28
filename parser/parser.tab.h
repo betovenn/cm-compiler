@@ -45,7 +45,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 31 "src/parser.y"
+#line 36 "src/parser.y"
 
     #include "ast.h"
 
@@ -96,7 +96,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 35 "src/parser.y"
+#line 40 "src/parser.y"
 
 
     TreeNode *tree;

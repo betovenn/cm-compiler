@@ -1,6 +1,6 @@
-#line 1 "lexer/lexer.yy.c"
+#line 2 "lexer/lexer.yy.c"
 
-#line 3 "lexer/lexer.yy.c"
+#line 4 "lexer/lexer.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -496,8 +496,15 @@ int lineno = 1;
 FILE *tokens_file;
 FILE *lex_errors;
 
+int lex_error_count = 0;
+int token_count = 0;
+
 void printToken(const char *type,const char *lexeme);
 void printError(const char *lexeme,const char *msg);
+void finishTokenOutput(void);
+
+static int current_token_line = 0;
+static int tokens_in_current_line = 0;
 
 #define YY_USER_ACTION \
     yylloc.first_line = lineno; \
@@ -505,9 +512,9 @@ void printError(const char *lexeme,const char *msg);
     yylloc.first_column = 1; \
     yylloc.last_column = 1;
 
-#line 508 "lexer/lexer.yy.c"
+#line 516 "lexer/lexer.yy.c"
 
-#line 510 "lexer/lexer.yy.c"
+#line 518 "lexer/lexer.yy.c"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -725,10 +732,10 @@ YY_DECL
 		}
 
 	{
-#line 33 "src/lexer.l"
+#line 40 "src/lexer.l"
 
 
-#line 731 "lexer/lexer.yy.c"
+#line 739 "lexer/lexer.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -787,27 +794,27 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 35 "src/lexer.l"
+#line 42 "src/lexer.l"
 BEGIN(COMMENT);
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 37 "src/lexer.l"
+#line 44 "src/lexer.l"
 BEGIN(INITIAL);
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 39 "src/lexer.l"
+#line 46 "src/lexer.l"
 lineno++;
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 41 "src/lexer.l"
+#line 48 "src/lexer.l"
 ;
 	YY_BREAK
 case YY_STATE_EOF(COMMENT):
-#line 43 "src/lexer.l"
+#line 50 "src/lexer.l"
 {
                             printError("/*","Comentario no cerrado");
                             return 0;
@@ -815,23 +822,23 @@ case YY_STATE_EOF(COMMENT):
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 48 "src/lexer.l"
+#line 55 "src/lexer.l"
 ;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 50 "src/lexer.l"
+#line 57 "src/lexer.l"
 ;
 	YY_BREAK
 case 7:
 /* rule 7 can match eol */
 YY_RULE_SETUP
-#line 52 "src/lexer.l"
+#line 59 "src/lexer.l"
 lineno++;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 54 "src/lexer.l"
+#line 61 "src/lexer.l"
 {
                             printToken("KEYWORD",yytext);
                             return IF;
@@ -839,7 +846,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 59 "src/lexer.l"
+#line 66 "src/lexer.l"
 {
                             printToken("KEYWORD",yytext);
                             return ELSE;
@@ -847,7 +854,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 64 "src/lexer.l"
+#line 71 "src/lexer.l"
 {
                             printToken("KEYWORD",yytext);
                             return INT;
@@ -855,7 +862,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 69 "src/lexer.l"
+#line 76 "src/lexer.l"
 {
                             printToken("KEYWORD",yytext);
                             return VOID;
@@ -863,7 +870,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 74 "src/lexer.l"
+#line 81 "src/lexer.l"
 {
                             printToken("KEYWORD",yytext);
                             return WHILE;
@@ -871,7 +878,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 79 "src/lexer.l"
+#line 86 "src/lexer.l"
 {
                             printToken("KEYWORD",yytext);
                             return RETURN;
@@ -879,7 +886,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 84 "src/lexer.l"
+#line 91 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return LE;
@@ -887,7 +894,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 89 "src/lexer.l"
+#line 96 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return LT;
@@ -895,7 +902,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 94 "src/lexer.l"
+#line 101 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return GE;
@@ -903,7 +910,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 99 "src/lexer.l"
+#line 106 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return GT;
@@ -911,7 +918,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 104 "src/lexer.l"
+#line 111 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return EQ;
@@ -919,7 +926,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 109 "src/lexer.l"
+#line 116 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return NE;
@@ -927,7 +934,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 114 "src/lexer.l"
+#line 121 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return ASSIGN;
@@ -935,7 +942,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 119 "src/lexer.l"
+#line 126 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return PLUS;
@@ -943,7 +950,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 124 "src/lexer.l"
+#line 131 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return MINUS;
@@ -951,7 +958,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 129 "src/lexer.l"
+#line 136 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return TIMES;
@@ -959,7 +966,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 134 "src/lexer.l"
+#line 141 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return OVER;
@@ -967,7 +974,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 139 "src/lexer.l"
+#line 146 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return SEMI;
@@ -975,7 +982,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 144 "src/lexer.l"
+#line 151 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return COMMA;
@@ -983,7 +990,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 149 "src/lexer.l"
+#line 156 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return LPAREN;
@@ -991,7 +998,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 154 "src/lexer.l"
+#line 161 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return RPAREN;
@@ -999,7 +1006,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 159 "src/lexer.l"
+#line 166 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return LBRACKET;
@@ -1007,7 +1014,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 164 "src/lexer.l"
+#line 171 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return RBRACKET;
@@ -1015,7 +1022,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 169 "src/lexer.l"
+#line 176 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return LBRACE;
@@ -1023,7 +1030,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 174 "src/lexer.l"
+#line 181 "src/lexer.l"
 {
                             printToken("SYMBOL",yytext);
                             return RBRACE;
@@ -1031,7 +1038,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 179 "src/lexer.l"
+#line 186 "src/lexer.l"
 {
 
                             yylval.string = strdup(yytext);
@@ -1043,7 +1050,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 188 "src/lexer.l"
+#line 195 "src/lexer.l"
 {
 
                             yylval.string = strdup(yytext);
@@ -1055,18 +1062,18 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 197 "src/lexer.l"
+#line 204 "src/lexer.l"
 {
 
-                            printError(yytext,"Símbolo inválido");
+                            printError(yytext,"Simbolo invalido");
                         }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 202 "src/lexer.l"
+#line 209 "src/lexer.l"
 ECHO;
 	YY_BREAK
-#line 1069 "lexer/lexer.yy.c"
+#line 1077 "lexer/lexer.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2071,24 +2078,52 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 202 "src/lexer.l"
+#line 209 "src/lexer.l"
 
 
 void printToken(const char *type,const char *lexeme) {
 
+    if(current_token_line != lineno) {
+
+        if(tokens_in_current_line > 0)
+            fprintf(tokens_file,"\n");
+
+        fprintf(tokens_file,"Linea %-4d: ",lineno);
+
+        current_token_line = lineno;
+        tokens_in_current_line = 0;
+    }
+
     fprintf(tokens_file,
-            "(%s,%s)\n",
+            "%s%s(\"%s\")",
+            tokens_in_current_line > 0 ? " " : "",
             type,
             lexeme);
+
+    tokens_in_current_line++;
+    token_count++;
 }
 
 void printError(const char *lexeme,const char *msg) {
 
     fprintf(lex_errors,
-            "Linea %d: %s -> %s\n",
+            "[Linea %-4d] %-10s -> %s\n",
             lineno,
             lexeme,
             msg);
+
+    lex_error_count++;
+}
+
+void finishTokenOutput(void) {
+
+    if(tokens_in_current_line > 0)
+        fprintf(tokens_file,"\n");
+
+    if(token_count == 0)
+        fprintf(tokens_file,"No se leyeron tokens.\n");
+
+    fprintf(tokens_file,"\nTotal de tokens: %d\n",token_count);
 }
 
 int yywrap() {
