@@ -1,14 +1,13 @@
 === RESUMEN DE COMPILACION ===
-Entrada: tests/prueba7.txt
+Entrada: tests/prueba20.txt
 
 Etapa        Estado        Detalle
 -----------------------------------------------
-Lexico       correcto     0 error(es), 28 token(s)
-Sintactico   correcto     0 error(es)
-AST          generado     output/Arbol.txt
-Semantico    correcto     0 error(es)
-Intermedio   generado     output/CodigoIntermedio.txt
-                           9 instruccion(es)
+Lexico       correcto     0 error(es), 4 token(s)
+Sintactico   con errores  1 error(es)
+AST          no generado  revise output/SintaxErr.txt
+Semantico    omitido      requiere AST valido
+Intermedio   omitido      requiere AST valido
 
 Archivos generados:
 - Tokens:     output/tokens.txt

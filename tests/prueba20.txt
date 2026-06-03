@@ -1,0 +1,10 @@
+void main() {
+    int x;
+    char y;
+
+    z = suma(x,y);
+}
+
+int suma(int a, int b) {
+    return a + b;
+}
