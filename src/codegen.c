@@ -48,6 +48,19 @@ static char *newLabel(void) {
     return newName("L", labelCount);
 }
 
+static char *formatArrayAccess(const char *name, const char *index) {
+    size_t length = strlen(name) + strlen(index) + 4;
+    char *text = (char *)malloc(length);
+
+    if (text == NULL) {
+        fprintf(stderr, "codegen: no se pudo reservar memoria\n");
+        exit(1);
+    }
+
+    snprintf(text, length, "%s[%s]", name, index);
+    return text;
+}
+
 static void emit(const char *format, ...) {
     va_list args;
 
@@ -260,7 +273,16 @@ static char *genExp(TreeNode *node) {
 
     switch (node->kind.exp) {
         case ConstK:
+            return copyString(node->attr);
+
         case IdK:
+            if (node->isArray) {
+                char *index = genExp(node->child[0]);
+                char *access = formatArrayAccess(node->attr, index);
+
+                free(index);
+                return access;
+            }
             return copyString(node->attr);
 
         case CallK:

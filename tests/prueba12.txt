@@ -1,6 +1,0 @@
-/*
-comentario infinito
-
-void main(void) {
-
-}

@@ -1,0 +1,10 @@
+void main(void) {
+
+    int x;
+    int datos[4];
+
+    x[0] = 1;
+    datos = 2;
+
+    output(datos[1]);
+}
