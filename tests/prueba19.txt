@@ -1,5 +1,0 @@
-/*
-solo comentarios
-*/
-
-// hola

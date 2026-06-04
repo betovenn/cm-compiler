@@ -1,0 +1,17 @@
+int calcula(void) {
+
+    return;
+}
+
+void imprime(int valor) {
+
+    return valor;
+}
+
+void main(void) {
+
+    int x;
+    int x;
+
+    x = 1;
+}

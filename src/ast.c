@@ -28,6 +28,8 @@ TreeNode* newStmtNode(StmtKind kind) {
 
     t->attr = NULL;
     t->type = NULL;
+    t->arraySize = NULL;
+    t->isArray = 0;
 
     return t;
 }
@@ -47,6 +49,8 @@ TreeNode* newExpNode(ExpKind kind) {
 
     t->attr = NULL;
     t->type = NULL;
+    t->arraySize = NULL;
+    t->isArray = 0;
 
     return t;
 }
@@ -66,6 +70,8 @@ TreeNode* newDeclNode(DeclKind kind) {
 
     t->attr = NULL;
     t->type = NULL;
+    t->arraySize = NULL;
+    t->isArray = 0;
 
     return t;
 }
@@ -120,7 +126,10 @@ void printTree(TreeNode *tree, int indent, FILE *out) {
                         break;
 
                     case IdK:
-                        fprintf(out,"Id: %s\n",tree->attr);
+                        if(tree->isArray)
+                            fprintf(out,"ArrayId: %s\n",tree->attr);
+                        else
+                            fprintf(out,"Id: %s\n",tree->attr);
                         break;
 
                     case CallK:
@@ -135,7 +144,10 @@ void printTree(TreeNode *tree, int indent, FILE *out) {
                 switch(tree->kind.decl) {
 
                     case VarDeclK:
-                        fprintf(out,"VarDecl: %s\n",tree->attr);
+                        if(tree->isArray)
+                            fprintf(out,"VarDecl: %s[%s]\n",tree->attr,tree->arraySize);
+                        else
+                            fprintf(out,"VarDecl: %s\n",tree->attr);
                         break;
 
                     case FunDeclK:
@@ -143,7 +155,10 @@ void printTree(TreeNode *tree, int indent, FILE *out) {
                         break;
 
                     case ParamK:
-                        fprintf(out,"Param: %s\n",tree->attr);
+                        if(tree->isArray)
+                            fprintf(out,"Param: %s[]\n",tree->attr);
+                        else
+                            fprintf(out,"Param: %s\n",tree->attr);
                         break;
                 }
 

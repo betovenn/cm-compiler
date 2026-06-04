@@ -1,0 +1,13 @@
+int total(int datos[], int n) {
+
+    return datos[0] + n;
+}
+
+void main(void) {
+
+    int x;
+    int datos[3];
+
+    x = total(x, 3);
+    x = total(datos);
+}

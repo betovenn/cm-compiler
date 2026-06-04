@@ -1,5 +1,20 @@
 === ARBOL SINTACTICO ABSTRACTO ===
 
-Estado: no generado
+Estado: generado
 
-No se genero el AST porque el analisis sintactico fallo.
+FunDecl: main
+  Compound
+    VarDecl: i
+    Assign
+      Id: i
+      Const: 0
+    While
+      Op: <
+        Id: i
+        Const: 10
+      Compound
+        Assign
+          Id: i
+          Op: +
+            Id: i
+            Const: 1

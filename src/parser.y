@@ -17,6 +17,10 @@ void yyerror(const char *s);
 static void set_syntax_context(const char *context);
 static void clear_syntax_context(void);
 static void write_summary(const char *input_file, int parse_result, int semantic_errors, int intermediate_generated, int intermediate_instructions);
+static const char *friendly_token(const char *token);
+static const char *syntax_message(const char *raw_message,const char *near_token);
+static const char *syntax_suggestion(const char *raw_message,const char *near_token);
+static void write_syntax_diagnostic(int line,const char *message,const char *near_token,const char *suggestion,int derived);
 
 TreeNode *savedTree;
 
@@ -132,6 +136,16 @@ var_declaration
             $$->attr = $2;
             $$->type = $1;
         }
+
+    | type_specifier ID LBRACKET NUM RBRACKET SEMI
+        {
+            $$ = newDeclNode(VarDeclK);
+
+            $$->attr = $2;
+            $$->type = $1;
+            $$->arraySize = $4;
+            $$->isArray = 1;
+        }
     ;
 
 fun_declaration
@@ -176,12 +190,21 @@ param_list
     ;
 
 param
-    : INT ID
+    : type_specifier ID
         {
             $$ = newDeclNode(ParamK);
 
             $$->attr = $2;
-            $$->type = "int";
+            $$->type = $1;
+        }
+
+    | type_specifier ID LBRACKET RBRACKET
+        {
+            $$ = newDeclNode(ParamK);
+
+            $$->attr = $2;
+            $$->type = $1;
+            $$->isArray = 1;
         }
     ;
 
@@ -522,6 +545,15 @@ var
 
             $$->attr = $1;
         }
+
+    | ID LBRACKET expression RBRACKET
+        {
+            $$ = newExpNode(IdK);
+
+            $$->attr = $1;
+            $$->child[0] = $3;
+            $$->isArray = 1;
+        }
     ;
 
 call
@@ -577,39 +609,123 @@ static void clear_syntax_context(void) {
 
 void yyerror(const char *s) {
 
+    extern int lex_error_count;
     int line = yylloc.first_line > 0 ? yylloc.first_line : lineno;
+    const char *near_token = yytext != NULL ? yytext : "";
+    const char *message = syntax_message(s,near_token);
+    const char *suggestion = syntax_suggestion(s,near_token);
     syntax_error_count++;
 
-    if(syntax_context != NULL) {
+    write_syntax_diagnostic(line,message,near_token,suggestion,lex_error_count > 0);
+}
 
-        fprintf(
-            syntax_errors,
-            "[Linea %-4d] %s %s cerca de '%s'\n",
-            line,
-            s,
-            syntax_context,
-            yytext
-        );
-    }
-    else {
+static const char *friendly_token(const char *token) {
 
-        fprintf(
-            syntax_errors,
-            "[Linea %-4d] %s cerca de '%s'\n",
-            line,
-            s,
-            yytext
-        );
-    }
+    if(token == NULL)
+        return "";
+    if(strcmp(token,"RPAREN") == 0)
+        return "')'";
+    if(strcmp(token,"LPAREN") == 0)
+        return "'('";
+    if(strcmp(token,"SEMI") == 0)
+        return "';'";
+    if(strcmp(token,"COMMA") == 0)
+        return "','";
+    if(strcmp(token,"LBRACKET") == 0)
+        return "'['";
+    if(strcmp(token,"RBRACKET") == 0)
+        return "']'";
+    if(strcmp(token,"LBRACE") == 0)
+        return "'{'";
+    if(strcmp(token,"RBRACE") == 0)
+        return "'}'";
+    if(strcmp(token,"ID") == 0)
+        return "identificador";
+    if(strcmp(token,"NUM") == 0)
+        return "numero";
+    if(strcmp(token,"INT") == 0)
+        return "'int'";
+    if(strcmp(token,"VOID") == 0)
+        return "'void'";
+    if(strcmp(token,"ASSIGN") == 0)
+        return "'='";
+    if(strcmp(token,"PLUS") == 0)
+        return "'+'";
+    if(strcmp(token,"end of file") == 0)
+        return "fin de archivo";
+
+    return token;
+}
+
+static const char *syntax_message(const char *raw_message,const char *near_token) {
+
+    if(raw_message != NULL && strstr(raw_message,"unexpected end of file") != NULL)
+        return "Fin de archivo inesperado.";
+    if(near_token != NULL && strcmp(near_token,")") == 0 &&
+       raw_message != NULL && strstr(raw_message,"expecting INT or VOID") != NULL)
+        return "Lista de parametros invalida en declaracion de funcion.";
+    if(near_token != NULL && strcmp(near_token,"=") == 0)
+        return "Declaracion invalida: Kenneth C- no permite inicializar variables en la declaracion.";
+    if(near_token != NULL && strcmp(near_token,"+") == 0)
+        return "Expresion incompleta o operador '+' fuera de lugar.";
+    if(near_token != NULL && strcmp(near_token,"}") == 0)
+        return "Bloque cerrado antes de completar la sentencia anterior.";
+    if(raw_message != NULL && strstr(raw_message,"expecting SEMI or LBRACKET") != NULL)
+        return "Declaracion de variable incompleta.";
+    if(raw_message != NULL && strstr(raw_message,"unexpected ID") != NULL)
+        return "Token inesperado en esta posicion.";
+
+    return "Token inesperado durante el analisis sintactico.";
+}
+
+static const char *syntax_suggestion(const char *raw_message,const char *near_token) {
+
+    if(raw_message != NULL && strstr(raw_message,"unexpected end of file") != NULL)
+        return "Revise si falta cerrar '}', ')' o completar una sentencia antes del fin de archivo.";
+    if(near_token != NULL && strcmp(near_token,")") == 0 &&
+       raw_message != NULL && strstr(raw_message,"expecting INT or VOID") != NULL)
+        return "Use 'void' para funciones sin parametros, por ejemplo void main(void).";
+    if(near_token != NULL && strcmp(near_token,"=") == 0)
+        return "Declare primero la variable y asigne despues: int i; i = 0;";
+    if(near_token != NULL && strcmp(near_token,"+") == 0)
+        return "Complete ambos operandos del operador o elimine el '+'. Kenneth C- tampoco incluye i++.";
+    if(near_token != NULL && strcmp(near_token,"}") == 0)
+        return "Revise si falta una sentencia despues de if/while o si falta ';'.";
+    if(raw_message != NULL && strstr(raw_message,"expecting SEMI or LBRACKET") != NULL)
+        return "Termine la declaracion con ';' o declare un arreglo con '[NUM]'.";
+
+    return "Compare la linea con la gramatica de Kenneth C- y revise el token indicado.";
+}
+
+static void write_syntax_diagnostic(int line,const char *message,const char *near_token,const char *suggestion,int derived) {
+
+    fprintf(syntax_errors,"[Sintactico][Linea %-4d] %s\n",line,message);
+    if(syntax_context != NULL)
+        fprintf(syntax_errors,"Contexto: %s\n",syntax_context);
+    if(near_token != NULL && strlen(near_token) > 0)
+        fprintf(syntax_errors,"Cerca de: '%s'\n",near_token);
+    if(suggestion != NULL && strlen(suggestion) > 0)
+        fprintf(syntax_errors,"Sugerencia: %s\n",suggestion);
+    if(derived)
+        fprintf(syntax_errors,"Nota: este error puede ser derivado de errores lexicos previos.\n");
+    fprintf(syntax_errors,"\n");
 }
 
 static void write_summary(const char *input_file, int parse_result, int semantic_errors, int intermediate_generated, int intermediate_instructions) {
 
     extern int lex_error_count;
     extern int token_count;
+    const char *first_error_stage = "ninguna";
 
     fprintf(summary_file,"=== RESUMEN DE COMPILACION ===\n");
     fprintf(summary_file,"Entrada: %s\n\n",input_file != NULL ? input_file : "stdin");
+
+    if(lex_error_count > 0)
+        first_error_stage = "Lexico";
+    else if(syntax_error_count > 0 || parse_result != 0)
+        first_error_stage = "Sintactico";
+    else if(semantic_errors > 0)
+        first_error_stage = "Semantico";
 
     fprintf(summary_file,"Etapa        Estado        Detalle\n");
     fprintf(summary_file,"-----------------------------------------------\n");
@@ -620,9 +736,11 @@ static void write_summary(const char *input_file, int parse_result, int semantic
     fprintf(summary_file,"Sintactico   %-12s %d error(es)\n",
             syntax_error_count == 0 && parse_result == 0 ? "correcto" : "con errores",
             syntax_error_count);
+    if(lex_error_count > 0 && syntax_error_count > 0)
+        fprintf(summary_file,"              %-12s errores sintacticos posiblemente derivados del lexico\n","");
 
-    if(syntax_error_count > 0 || parse_result != 0 || savedTree == NULL) {
-        fprintf(summary_file,"AST          %-12s revise output/SintaxErr.txt\n","no generado");
+    if(lex_error_count > 0 || syntax_error_count > 0 || parse_result != 0 || savedTree == NULL) {
+        fprintf(summary_file,"AST          %-12s revise output/LexErr.txt y output/SintaxErr.txt\n","no generado");
         fprintf(summary_file,"Semantico    %-12s requiere AST valido\n","omitido");
         fprintf(summary_file,"Intermedio   %-12s requiere AST valido\n","omitido");
     }
@@ -637,6 +755,16 @@ static void write_summary(const char *input_file, int parse_result, int semantic
         if(intermediate_generated)
             fprintf(summary_file,"              %-12s %d instruccion(es)\n","",intermediate_instructions);
     }
+
+    fprintf(summary_file,"\nPrimer error real: %s\n",first_error_stage);
+    if(lex_error_count > 0)
+        fprintf(summary_file,"Gestion: AST, semantico e intermedio omitidos por errores lexicos.\n");
+    else if(syntax_error_count > 0 || parse_result != 0)
+        fprintf(summary_file,"Gestion: AST, semantico e intermedio omitidos por errores sintacticos.\n");
+    else if(semantic_errors > 0)
+        fprintf(summary_file,"Gestion: codigo intermedio omitido por errores semanticos.\n");
+    else
+        fprintf(summary_file,"Gestion: todas las etapas completadas.\n");
 
     fprintf(summary_file,"\nArchivos generados:\n");
     fprintf(summary_file,"- Tokens:     output/tokens.txt\n");
@@ -701,14 +829,14 @@ int main(int argc,char *argv[]) {
 
     fprintf(ast_file,"=== ARBOL SINTACTICO ABSTRACTO ===\n\n");
 
-    if(syntax_error_count > 0 || parse_result != 0 || savedTree == NULL) {
+    if(lex_error_count > 0 || syntax_error_count > 0 || parse_result != 0 || savedTree == NULL) {
         fprintf(ast_file,"Estado: no generado\n\n");
-        fprintf(ast_file,"No se genero el AST porque el analisis sintactico fallo.\n");
+        fprintf(ast_file,"No se genero el AST porque existen errores lexicos o sintacticos.\n");
 
         fprintf(semantic_file,"=== ANALISIS SEMANTICO ===\n\n");
         fprintf(semantic_file,"Estado: omitido\n\n");
         fprintf(semantic_file,"No se ejecuto el analisis semantico porque no existe un AST valido.\n");
-        fprintf(semantic_file,"Revise output/SintaxErr.txt.\n");
+        fprintf(semantic_file,"Revise output/LexErr.txt y output/SintaxErr.txt.\n");
 
         fprintf(code_file,"=== CODIGO INTERMEDIO ===\n\n");
         fprintf(code_file,"Estado: omitido\n\n");

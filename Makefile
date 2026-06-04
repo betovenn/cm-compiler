@@ -21,7 +21,7 @@
 # 	-I./src \
 # 	-o bin/compiler
 
-# 	./bin/compiler tests/prueba7.txt
+# 	./bin/compiler tests/errsem3.txt
 
 # dirs:
 # 	mkdir -p parser
@@ -67,7 +67,7 @@ $(TARGET):
 	$(LDFLAGS) \
 	-o $(TARGET)
 
-	./$(TARGET) tests/prueba7.txt
+	./$(TARGET) tests/prueba1.txt
 
 dirs:
 	mkdir -p parser
@@ -83,7 +83,8 @@ clean:
 
 
 
-# Direcciones de test para Windows MSYS2 y Ubuntu WSL:
+# Direcciones de test para Windows MSYS2 ó Ubuntu WSL:
 # cd C:\Users\Admin\Desktop\cm-compiler-main
 # cd /c/Users/Admin/Desktop/cm-compiler-main
 # cd /mnt/c/Users/Admin/Desktop/cm-compiler-main
+

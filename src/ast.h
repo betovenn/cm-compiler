@@ -51,6 +51,8 @@ typedef struct treeNode {
 
     char *attr;
     char *type;
+    char *arraySize;
+    int isArray;
 
 } TreeNode;
 
