@@ -1,11 +1,5 @@
 === TOKENS POR LINEA ===
 
-Linea 1   : KEYWORD("void") ID("main") SYMBOL("(") KEYWORD("void") SYMBOL(")") SYMBOL("{")
-Linea 3   : KEYWORD("int") ID("i") SYMBOL(";")
-Linea 5   : ID("i") SYMBOL("=") NUM("0") SYMBOL(";")
-Linea 7   : KEYWORD("while") SYMBOL("(") ID("i") SYMBOL("<") NUM("10") SYMBOL(")") SYMBOL("{")
-Linea 9   : ID("i") SYMBOL("=") ID("i") SYMBOL("+") NUM("1") SYMBOL(";")
-Linea 10  : SYMBOL("}")
-Linea 11  : SYMBOL("}")
+Linea 1   : KEYWORD("int") ID("main") SYMBOL("(") SYMBOL(")")
 
-Total de tokens: 28
+Total de tokens: 4

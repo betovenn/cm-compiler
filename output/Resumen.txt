@@ -1,17 +1,13 @@
 === RESUMEN DE COMPILACION ===
-Entrada: C:\Users\Fer\AppData\Local\Temp\cm-compiler-patch-fd6d83e6f46742b8b8d382f8802eace8\tests\prueba7.txt
+Entrada: 116425_ejemplo.cminus
 
 Etapa        Estado        Detalle
 -----------------------------------------------
-Lexico       correcto     0 error(es), 28 token(s)
-Sintactico   correcto     0 error(es)
-AST          generado     output/Arbol.txt
-Semantico    correcto     0 error(es)
-Intermedio   generado     output/CodigoIntermedio.txt
-                           9 instruccion(es)
-
-Primer error real: ninguna
-Gestion: todas las etapas completadas.
+Lexico       correcto     0 error(es), 4 token(s)
+Sintactico   con errores  1 error(es)
+AST          no generado  revise output/SintaxErr.txt
+Semantico    omitido      requiere AST valido
+Intermedio   omitido      requiere AST valido
 
 Archivos generados:
 - Tokens:     output/tokens.txt

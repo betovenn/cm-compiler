@@ -95,6 +95,11 @@ NUM        {DIGIT}+
                             return WHILE;
                         }
 
+"for"                   {
+                            printToken("KEYWORD",yytext);
+                            return FOR;
+}
+
 "return"                {
                             printToken("KEYWORD",yytext);
                             return RETURN;

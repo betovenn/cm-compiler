@@ -1,15 +1,6 @@
 === ANALISIS SEMANTICO ===
 
+Estado: omitido
 
-Informacion auxiliar: tabla de simbolos
-+---------+----------+------+--------------------+------------------------------+
-| Alcance | Clase    | Tipo | Nombre             | Parametros                   |
-+---------+----------+------+--------------------+------------------------------+
-| 0       | funcion  | int  | input              |                              |
-| 0       | funcion  | void | output             | int x                        |
-| 0       | funcion  | void | main               |                              |
-| 2       | variable | int  | i                  |                              |
-+---------+----------+------+--------------------+------------------------------+
-
-Estado: correcto
-Errores semanticos: 0
+No se ejecuto el analisis semantico porque no existe un AST valido.
+Revise output/SintaxErr.txt.

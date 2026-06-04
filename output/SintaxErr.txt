@@ -1,5 +1,5 @@
 === ANALISIS SINTACTICO ===
 
-No se encontraron errores sintacticos.
+[Linea 1   ] syntax error, unexpected RPAREN, expecting INT or VOID cerca de ')'
 
-Total de errores sintacticos: 0
+Total de errores sintacticos: 1
