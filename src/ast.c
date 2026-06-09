@@ -98,6 +98,10 @@ void printTree(TreeNode *tree, int indent, FILE *out) {
                         fprintf(out,"While\n");
                         break;
 
+                    case ForK:
+                        fprintf(out,"For\n");
+                        break;
+
                     case ReturnK:
                         fprintf(out,"Return\n");
                         break;

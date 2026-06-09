@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define MAXCHILDREN 3
+#define MAXCHILDREN 4
 
 typedef enum {
     StmtK,
@@ -14,6 +14,7 @@ typedef enum {
 typedef enum {
     IfK,
     WhileK,
+    ForK,
     ReturnK,
     CompoundK,
     AssignK

@@ -4,17 +4,141 @@ Estado: generado
 
 FunDecl: main
   Compound
-    VarDecl: i
-    Assign
-      Id: i
-      Const: 0
-    While
+    VarDecl: filasA
+    VarDecl: columnasA
+    VarDecl: filasB
+    VarDecl: columnasB
+    If
+      Op: !=
+        Id: columnasA
+        Id: filasB
+      Compound
+        Return
+          Const: 1
+    VarDecl: A
+    VarDecl: B
+    VarDecl: C
+    For
+      VarDecl: i
+        Const: 0
       Op: <
         Id: i
-        Const: 10
-      Compound
-        Assign
+        Id: filasA
+      Assign
+        Id: i
+        Op: +
           Id: i
-          Op: +
-            Id: i
-            Const: 1
+          Const: 1
+      Compound
+        For
+          VarDecl: j
+            Const: 0
+          Op: <
+            Id: j
+            Id: columnasA
+          Assign
+            Id: j
+            Op: +
+              Id: j
+              Const: 1
+          Compound
+            Assign
+              Id: A
+              Const: 1
+    For
+      VarDecl: i
+        Const: 0
+      Op: <
+        Id: i
+        Id: filasB
+      Assign
+        Id: i
+        Op: +
+          Id: i
+          Const: 1
+      Compound
+        For
+          VarDecl: j
+            Const: 0
+          Op: <
+            Id: j
+            Id: columnasB
+          Assign
+            Id: j
+            Op: +
+              Id: j
+              Const: 1
+          Compound
+            Assign
+              Id: B
+              Const: 1
+    For
+      VarDecl: i
+        Const: 0
+      Op: <
+        Id: i
+        Id: filasA
+      Assign
+        Id: i
+        Op: +
+          Id: i
+          Const: 1
+      Compound
+        For
+          VarDecl: j
+            Const: 0
+          Op: <
+            Id: j
+            Id: columnasB
+          Assign
+            Id: j
+            Op: +
+              Id: j
+              Const: 1
+          Compound
+            Assign
+              Id: C
+              Const: 0
+    For
+      VarDecl: i
+        Const: 0
+      Op: <
+        Id: i
+        Id: filasA
+      Assign
+        Id: i
+        Op: +
+          Id: i
+          Const: 1
+      Compound
+        For
+          VarDecl: j
+            Const: 0
+          Op: <
+            Id: j
+            Id: columnasB
+          Assign
+            Id: j
+            Op: +
+              Id: j
+              Const: 1
+          Compound
+            For
+              VarDecl: k
+                Const: 0
+              Op: <
+                Id: k
+                Id: columnasA
+              Assign
+                Id: k
+                Op: +
+                  Id: k
+                  Const: 1
+              Compound
+                Assign
+                  Id: C
+                  Op: *
+                    Id: A
+                    Id: B
+    Return
+      Const: 0

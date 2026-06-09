@@ -52,11 +52,11 @@ static int syntax_error_count = 0;
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 
-%token IF ELSE INT VOID WHILE RETURN
+%token IF ELSE INT VOID WHILE FOR RETURN
 
 %token PLUS MINUS TIMES OVER
 %token LT LE GT GE EQ NE
-%token ASSIGN
+%token ASSIGN INC
 
 %token SEMI COMMA
 
@@ -72,11 +72,12 @@ static int syntax_error_count = 0;
 %type <tree> var_declaration fun_declaration
 %type <tree> params param_list param
 %type <tree> compound_stmt
-%type <tree> local_declarations statement_list
+%type <tree> statement_list
 %type <tree> statement expression_stmt
 %type <tree> selection_stmt iteration_stmt return_stmt
 %type <tree> expression simple_expression additive_expression term factor
 %type <tree> var call args arg_list
+%type <tree> initialized_var_declaration for_init for_condition for_update increment_expression
 
 %%
 
@@ -148,6 +149,17 @@ var_declaration
         }
     ;
 
+initialized_var_declaration
+    : type_specifier ID ASSIGN expression
+        {
+            $$ = newDeclNode(VarDeclK);
+
+            $$->attr = $2;
+            $$->type = $1;
+            $$->child[0] = $4;
+        }
+    ;
+
 fun_declaration
     : type_specifier ID LPAREN params RPAREN compound_stmt
         {
@@ -165,6 +177,11 @@ params
     : param_list
 
     | VOID
+        {
+            $$ = NULL;
+        }
+
+    |
         {
             $$ = NULL;
         }
@@ -209,37 +226,11 @@ param
     ;
 
 compound_stmt
-    : LBRACE local_declarations statement_list RBRACE
+    : LBRACE statement_list RBRACE
         {
             $$ = newStmtNode(CompoundK);
 
-            $$->child[0] = $2;
-            $$->child[1] = $3;
-        }
-    ;
-
-local_declarations
-    : local_declarations var_declaration
-        {
-            TreeNode *t = $1;
-
-            if(t == NULL)
-                $$ = $2;
-
-            else {
-
-                while(t->sibling != NULL)
-                    t = t->sibling;
-
-                t->sibling = $2;
-
-                $$ = $1;
-            }
-        }
-
-    |
-        {
-            $$ = NULL;
+            $$->child[1] = $2;
         }
     ;
 
@@ -271,6 +262,13 @@ statement_list
 statement
     : expression_stmt
 
+    | var_declaration
+
+    | initialized_var_declaration SEMI
+        {
+            $$ = $1;
+        }
+
     | compound_stmt
 
     | selection_stmt
@@ -288,6 +286,11 @@ statement
 
 expression_stmt
     : expression SEMI
+        {
+            $$ = $1;
+        }
+
+    | increment_expression SEMI
         {
             $$ = $1;
         }
@@ -350,6 +353,75 @@ iteration_stmt
             $$ = newStmtNode(WhileK);
             $$->child[1] = $7;
         }
+
+    | FOR LPAREN for_init SEMI for_condition SEMI for_update RPAREN statement
+        {
+            $$ = newStmtNode(ForK);
+
+            $$->child[0] = $3;
+            $$->child[1] = $5;
+            $$->child[2] = $7;
+            $$->child[3] = $9;
+        }
+    ;
+
+for_init
+    : expression
+        {
+            $$ = $1;
+        }
+
+    | increment_expression
+        {
+            $$ = $1;
+        }
+
+    | initialized_var_declaration
+        {
+            $$ = $1;
+        }
+
+    | type_specifier ID
+        {
+            $$ = newDeclNode(VarDeclK);
+
+            $$->attr = $2;
+            $$->type = $1;
+        }
+
+    |
+        {
+            $$ = NULL;
+        }
+    ;
+
+for_condition
+    : expression
+        {
+            $$ = $1;
+        }
+
+    |
+        {
+            $$ = NULL;
+        }
+    ;
+
+for_update
+    : expression
+        {
+            $$ = $1;
+        }
+
+    | increment_expression
+        {
+            $$ = $1;
+        }
+
+    |
+        {
+            $$ = NULL;
+        }
     ;
 
 if_condition_context
@@ -397,6 +469,29 @@ expression
         }
 
     | simple_expression
+    ;
+
+increment_expression
+    : var INC
+        {
+            TreeNode *one = newExpNode(ConstK);
+            TreeNode *op = newExpNode(OpK);
+            TreeNode *left = newExpNode(IdK);
+
+            one->attr = "1";
+
+            left->attr = $1->attr;
+            left->isArray = $1->isArray;
+            left->child[0] = $1->child[0];
+
+            op->attr = "+";
+            op->child[0] = left;
+            op->child[1] = one;
+
+            $$ = newStmtNode(AssignK);
+            $$->child[0] = $1;
+            $$->child[1] = op;
+        }
     ;
 
 simple_expression
@@ -647,10 +742,14 @@ static const char *friendly_token(const char *token) {
         return "'int'";
     if(strcmp(token,"VOID") == 0)
         return "'void'";
+    if(strcmp(token,"FOR") == 0)
+        return "'for'";
     if(strcmp(token,"ASSIGN") == 0)
         return "'='";
     if(strcmp(token,"PLUS") == 0)
         return "'+'";
+    if(strcmp(token,"INC") == 0)
+        return "'++'";
     if(strcmp(token,"end of file") == 0)
         return "fin de archivo";
 
@@ -665,7 +764,7 @@ static const char *syntax_message(const char *raw_message,const char *near_token
        raw_message != NULL && strstr(raw_message,"expecting INT or VOID") != NULL)
         return "Lista de parametros invalida en declaracion de funcion.";
     if(near_token != NULL && strcmp(near_token,"=") == 0)
-        return "Declaracion invalida: Kenneth C- no permite inicializar variables en la declaracion.";
+        return "Declaracion invalida en esta posicion.";
     if(near_token != NULL && strcmp(near_token,"+") == 0)
         return "Expresion incompleta o operador '+' fuera de lugar.";
     if(near_token != NULL && strcmp(near_token,"}") == 0)
@@ -684,17 +783,17 @@ static const char *syntax_suggestion(const char *raw_message,const char *near_to
         return "Revise si falta cerrar '}', ')' o completar una sentencia antes del fin de archivo.";
     if(near_token != NULL && strcmp(near_token,")") == 0 &&
        raw_message != NULL && strstr(raw_message,"expecting INT or VOID") != NULL)
-        return "Use 'void' para funciones sin parametros, por ejemplo void main(void).";
+        return "Use una lista de parametros valida o dejela vacia, por ejemplo int main().";
     if(near_token != NULL && strcmp(near_token,"=") == 0)
-        return "Declare primero la variable y asigne despues: int i; i = 0;";
+        return "Revise si la inicializacion pertenece a una declaracion local o a la inicializacion de un for.";
     if(near_token != NULL && strcmp(near_token,"+") == 0)
-        return "Complete ambos operandos del operador o elimine el '+'. Kenneth C- tampoco incluye i++.";
+        return "Complete ambos operandos del operador o use incremento como i++.";
     if(near_token != NULL && strcmp(near_token,"}") == 0)
         return "Revise si falta una sentencia despues de if/while o si falta ';'.";
     if(raw_message != NULL && strstr(raw_message,"expecting SEMI or LBRACKET") != NULL)
         return "Termine la declaracion con ';' o declare un arreglo con '[NUM]'.";
 
-    return "Compare la linea con la gramatica de Kenneth C- y revise el token indicado.";
+    return "Compare la linea con la gramatica de C- y revise el token indicado.";
 }
 
 static void write_syntax_diagnostic(int line,const char *message,const char *near_token,const char *suggestion,int derived) {

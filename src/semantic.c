@@ -210,6 +210,31 @@ static void installPredefinedFunctions(void) {
 static const char *analyzeExpression(TreeNode *node);
 static void analyzeStatement(TreeNode *node);
 
+static void analyzeLocalDeclaration(TreeNode *node) {
+    const char *initType;
+
+    if (node == NULL || node->nodekind != DeclK || node->kind.decl != VarDeclK) {
+        return;
+    }
+
+    if (sameType(node->type, "void")) {
+        semanticError(node,
+                      "Una variable local no puede declararse con tipo void.",
+                      "Declare la variable como int o conviertala en una funcion void si no devuelve valor.");
+    }
+
+    insertSymbol(node, node->attr, node->type, 0, node->isArray);
+
+    if (node->child[0] != NULL) {
+        initType = analyzeExpression(node->child[0]);
+        if (initType != NULL && !sameType(node->type, initType)) {
+            semanticError(node,
+                          "La inicializacion usa tipos incompatibles.",
+                          "El tipo de la variable debe coincidir con la expresion inicial.");
+        }
+    }
+}
+
 static void addLocalDeclarations(TreeNode *node) {
     while (node != NULL) {
         if (node->nodekind == DeclK && node->kind.decl == VarDeclK) {
@@ -226,7 +251,6 @@ static void addLocalDeclarations(TreeNode *node) {
 
 static void analyzeCompound(TreeNode *node) {
     enterScope();
-    addLocalDeclarations(node->child[0]);
     analyzeStatement(node->child[1]);
     leaveScope();
 }
@@ -240,7 +264,7 @@ static const char *analyzeCall(TreeNode *node) {
     if (symbol == NULL) {
         char buffer[256];
         snprintf(buffer, sizeof(buffer), "Funcion '%s' llamada antes de declararse.", node->attr);
-        semanticError(node, buffer, "Declare la funcion antes de la llamada. Kenneth C- no tiene prototipos.");
+        semanticError(node, buffer, "Declare la funcion antes de la llamada. C- no tiene prototipos.");
         return NULL;
     }
 
@@ -392,6 +416,19 @@ static void analyzeStatement(TreeNode *node) {
                     analyzeStatement(node->child[2]);
                     break;
 
+                case ForK:
+                    enterScope();
+                    if (node->child[0] != NULL && node->child[0]->nodekind == DeclK) {
+                        analyzeLocalDeclaration(node->child[0]);
+                    } else {
+                        analyzeExpression(node->child[0]);
+                    }
+                    analyzeExpression(node->child[1]);
+                    analyzeExpression(node->child[2]);
+                    analyzeStatement(node->child[3]);
+                    leaveScope();
+                    break;
+
                 case ReturnK: {
                     const char *returnType = analyzeExpression(node->child[0]);
                     if (sameType(currentFunctionType, "void") && node->child[0] != NULL) {
@@ -418,6 +455,8 @@ static void analyzeStatement(TreeNode *node) {
                     analyzeExpression(node);
                     break;
             }
+        } else if (node->nodekind == DeclK) {
+            analyzeLocalDeclaration(node);
         } else if (node->nodekind == ExpK) {
             analyzeExpression(node);
         }
@@ -497,21 +536,21 @@ static void checkMainDeclaration(TreeNode *tree) {
 
     if (mainNode == NULL) {
         semanticError(last,
-                      "No se encontro la funcion obligatoria void main(void).",
-                      "Agregue void main(void) como ultima declaracion del programa.");
+                      "No se encontro la funcion obligatoria main.",
+                      "Agregue int main() o void main(void) como ultima declaracion del programa.");
         return;
     }
 
-    if (!sameType(mainNode->type, "void") || mainNode->child[0] != NULL) {
+    if ((!sameType(mainNode->type, "void") && !sameType(mainNode->type, "int")) || mainNode->child[0] != NULL) {
         semanticError(mainNode,
-                      "La funcion main existe, pero su firma no es void main(void).",
-                      "Declare main exactamente como void main(void).");
+                      "La funcion main existe, pero su firma no es valida.",
+                      "Declare main sin parametros como int main() o void main(void).");
     }
 
     if (last != mainNode) {
         semanticError(mainNode,
                       "La funcion main existe, pero no es la ultima declaracion.",
-                      "Mueva void main(void) al final del archivo.");
+                      "Mueva main al final del archivo.");
     }
 }
 

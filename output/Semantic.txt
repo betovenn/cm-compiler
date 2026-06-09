@@ -7,8 +7,23 @@ Informacion auxiliar: tabla de simbolos
 +---------+----------+------+--------------------+------------------------------+
 | 0       | funcion  | int  | input              |                              |
 | 0       | funcion  | void | output             | int x                        |
-| 0       | funcion  | void | main               |                              |
-| 2       | variable | int  | i                  |                              |
+| 0       | funcion  | int  | main               |                              |
+| 2       | variable | int  | filasA             |                              |
+| 2       | variable | int  | columnasA          |                              |
+| 2       | variable | int  | filasB             |                              |
+| 2       | variable | int  | columnasB          |                              |
+| 2       | variable | int  | A                  |                              |
+| 2       | variable | int  | B                  |                              |
+| 2       | variable | int  | C                  |                              |
+| 3       | variable | int  | i                  |                              |
+| 5       | variable | int  | j                  |                              |
+| 3       | variable | int  | i                  |                              |
+| 5       | variable | int  | j                  |                              |
+| 3       | variable | int  | i                  |                              |
+| 5       | variable | int  | j                  |                              |
+| 3       | variable | int  | i                  |                              |
+| 5       | variable | int  | j                  |                              |
+| 7       | variable | int  | k                  |                              |
 +---------+----------+------+--------------------+------------------------------+
 
 Estado: correcto
