@@ -66,28 +66,30 @@ extern int yydebug;
     INT = 261,                     /* INT  */
     VOID = 262,                    /* VOID  */
     WHILE = 263,                   /* WHILE  */
-    RETURN = 264,                  /* RETURN  */
-    PLUS = 265,                    /* PLUS  */
-    MINUS = 266,                   /* MINUS  */
-    TIMES = 267,                   /* TIMES  */
-    OVER = 268,                    /* OVER  */
-    LT = 269,                      /* LT  */
-    LE = 270,                      /* LE  */
-    GT = 271,                      /* GT  */
-    GE = 272,                      /* GE  */
-    EQ = 273,                      /* EQ  */
-    NE = 274,                      /* NE  */
-    ASSIGN = 275,                  /* ASSIGN  */
-    SEMI = 276,                    /* SEMI  */
-    COMMA = 277,                   /* COMMA  */
-    LPAREN = 278,                  /* LPAREN  */
-    RPAREN = 279,                  /* RPAREN  */
-    LBRACKET = 280,                /* LBRACKET  */
-    RBRACKET = 281,                /* RBRACKET  */
-    LBRACE = 282,                  /* LBRACE  */
-    RBRACE = 283,                  /* RBRACE  */
-    ID = 284,                      /* ID  */
-    NUM = 285                      /* NUM  */
+    FOR = 264,                     /* FOR  */
+    RETURN = 265,                  /* RETURN  */
+    PLUS = 266,                    /* PLUS  */
+    MINUS = 267,                   /* MINUS  */
+    TIMES = 268,                   /* TIMES  */
+    OVER = 269,                    /* OVER  */
+    LT = 270,                      /* LT  */
+    LE = 271,                      /* LE  */
+    GT = 272,                      /* GT  */
+    GE = 273,                      /* GE  */
+    EQ = 274,                      /* EQ  */
+    NE = 275,                      /* NE  */
+    ASSIGN = 276,                  /* ASSIGN  */
+    INC = 277,                     /* INC  */
+    SEMI = 278,                    /* SEMI  */
+    COMMA = 279,                   /* COMMA  */
+    LPAREN = 280,                  /* LPAREN  */
+    RPAREN = 281,                  /* RPAREN  */
+    LBRACKET = 282,                /* LBRACKET  */
+    RBRACKET = 283,                /* RBRACKET  */
+    LBRACE = 284,                  /* LBRACE  */
+    RBRACE = 285,                  /* RBRACE  */
+    ID = 286,                      /* ID  */
+    NUM = 287                      /* NUM  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -102,7 +104,7 @@ union YYSTYPE
     TreeNode *tree;
     char *string;
 
-#line 106 "parser/parser.tab.h"
+#line 108 "parser/parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

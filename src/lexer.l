@@ -64,11 +64,7 @@ NUM        {DIGIT}+
 
 \n                      lineno++;
 
-"//".*                  {
-                            printError("//",
-                                       "Comentario de linea '//' no permitido en Kenneth C-.",
-                                       "Use comentarios de bloque con /* ... */.");
-                        }
+"//".*                  ;
 
 "if"                    {
                             printToken("KEYWORD",yytext);
@@ -98,7 +94,7 @@ NUM        {DIGIT}+
 "for"                   {
                             printToken("KEYWORD",yytext);
                             return FOR;
-}
+                        }
 
 "return"                {
                             printToken("KEYWORD",yytext);
@@ -143,6 +139,11 @@ NUM        {DIGIT}+
 "+"                     {
                             printToken("SYMBOL",yytext);
                             return PLUS;
+                        }
+
+"++"                    {
+                            printToken("SYMBOL",yytext);
+                            return INC;
                         }
 
 "-"                     {
@@ -211,7 +212,7 @@ NUM        {DIGIT}+
 
 {LETTER}+{DIGIT}({LETTER}|{DIGIT})* {
                             printError(yytext,
-                                       "Identificador invalido: en Kenneth C- los identificadores solo aceptan letras.",
+                                       "Identificador invalido: en C- los identificadores solo aceptan letras.",
                                        "Use un nombre formado solo por letras, por ejemplo contador.");
                         }
 
@@ -233,7 +234,7 @@ NUM        {DIGIT}+
 .                       {
 
                             printError(yytext,
-                                       "Simbolo no pertenece a Kenneth C-.",
+                                       "Simbolo no pertenece a C-.",
                                        "Use solo simbolos validos: + - * / < <= > >= == != = ; , ( ) [ ] { }");
                         }
 

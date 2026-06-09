@@ -1,5 +1,85 @@
 === CODIGO INTERMEDIO ===
 
-Estado: omitido
-
-Codigo intermedio omitido por errores previos.
+label main
+t1 = columnasA != filasB
+fjump t1 L1
+return 1
+label L1
+i = 0
+label L2
+t2 = i < filasA
+fjump t2 L3
+j = 0
+label L4
+t3 = j < columnasA
+fjump t3 L5
+A = 1
+t4 = j + 1
+j = t4
+jump L4
+label L5
+t5 = i + 1
+i = t5
+jump L2
+label L3
+i = 0
+label L6
+t6 = i < filasB
+fjump t6 L7
+j = 0
+label L8
+t7 = j < columnasB
+fjump t7 L9
+B = 1
+t8 = j + 1
+j = t8
+jump L8
+label L9
+t9 = i + 1
+i = t9
+jump L6
+label L7
+i = 0
+label L10
+t10 = i < filasA
+fjump t10 L11
+j = 0
+label L12
+t11 = j < columnasB
+fjump t11 L13
+C = 0
+t12 = j + 1
+j = t12
+jump L12
+label L13
+t13 = i + 1
+i = t13
+jump L10
+label L11
+i = 0
+label L14
+t14 = i < filasA
+fjump t14 L15
+j = 0
+label L16
+t15 = j < columnasB
+fjump t15 L17
+k = 0
+label L18
+t16 = k < columnasA
+fjump t16 L19
+t17 = A * B
+C = t17
+t18 = k + 1
+k = t18
+jump L18
+label L19
+t19 = j + 1
+j = t19
+jump L16
+label L17
+t20 = i + 1
+i = t20
+jump L14
+label L15
+return 0

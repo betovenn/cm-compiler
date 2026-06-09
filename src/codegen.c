@@ -80,6 +80,7 @@ static void genNodeList(TreeNode *node);
 static void genDecl(TreeNode *node);
 static void genStmt(TreeNode *node);
 static char *genExp(TreeNode *node);
+static void genLocalDecl(TreeNode *node);
 
 static void appendText(char **target, const char *text) {
     size_t oldLength = *target != NULL ? strlen(*target) : 0;
@@ -197,6 +198,41 @@ static void genWhile(TreeNode *node) {
     free(endLabel);
 }
 
+static void genFor(TreeNode *node) {
+    char *testLabel = newLabel();
+    char *endLabel = newLabel();
+
+    if (node->child[0] != NULL) {
+        if (node->child[0]->nodekind == DeclK) {
+            genLocalDecl(node->child[0]);
+        } else {
+            char *unused = genExp(node->child[0]);
+            free(unused);
+        }
+    }
+
+    emit("label %s", testLabel);
+
+    if (node->child[1] != NULL) {
+        char *condition = genExp(node->child[1]);
+        emit("fjump %s %s", condition, endLabel);
+        free(condition);
+    }
+
+    genStmt(node->child[3]);
+
+    if (node->child[2] != NULL) {
+        char *unused = genExp(node->child[2]);
+        free(unused);
+    }
+
+    emit("jump %s", testLabel);
+    emit("label %s", endLabel);
+
+    free(testLabel);
+    free(endLabel);
+}
+
 static void genReturn(TreeNode *node) {
     if (node->child[0] == NULL) {
         emit("return");
@@ -227,6 +263,10 @@ static void genStmt(TreeNode *node) {
                     genWhile(node);
                     break;
 
+                case ForK:
+                    genFor(node);
+                    break;
+
                 case ReturnK:
                     genReturn(node);
                     break;
@@ -239,6 +279,8 @@ static void genStmt(TreeNode *node) {
                     genAssign(node);
                     break;
             }
+        } else if (node->nodekind == DeclK) {
+            genLocalDecl(node);
         } else if (node->nodekind == ExpK) {
             if (node->kind.exp == CallK) {
                 genCall(node, 0);
@@ -250,6 +292,18 @@ static void genStmt(TreeNode *node) {
 
         node = node->sibling;
     }
+}
+
+static void genLocalDecl(TreeNode *node) {
+    char *value;
+
+    if (node == NULL || node->nodekind != DeclK || node->kind.decl != VarDeclK || node->child[0] == NULL) {
+        return;
+    }
+
+    value = genExp(node->child[0]);
+    emit("%s = %s", node->attr, value);
+    free(value);
 }
 
 static char *genExp(TreeNode *node) {

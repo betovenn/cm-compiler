@@ -1,13 +1,17 @@
 === RESUMEN DE COMPILACION ===
-Entrada: 116425_ejemplo.cminus
+Entrada: tests/116425_ejemplo.txt
 
 Etapa        Estado        Detalle
 -----------------------------------------------
-Lexico       correcto     0 error(es), 4 token(s)
-Sintactico   con errores  1 error(es)
-AST          no generado  revise output/SintaxErr.txt
-Semantico    omitido      requiere AST valido
-Intermedio   omitido      requiere AST valido
+Lexico       correcto     0 error(es), 206 token(s)
+Sintactico   correcto     0 error(es)
+AST          generado     output/Arbol.txt
+Semantico    correcto     0 error(es)
+Intermedio   generado     output/CodigoIntermedio.txt
+                           83 instruccion(es)
+
+Primer error real: ninguna
+Gestion: todas las etapas completadas.
 
 Archivos generados:
 - Tokens:     output/tokens.txt

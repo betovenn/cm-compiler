@@ -1,5 +1,3 @@
 === ARBOL SINTACTICO ABSTRACTO ===
 
 Estado: no generado
-
-No se genero el AST porque el analisis sintactico fallo.

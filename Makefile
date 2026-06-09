@@ -21,7 +21,7 @@
 # 	-I./src \
 # 	-o bin/compiler
 
-# 	./bin/compiler tests/errsem3.txt
+# 	./bin/compiler tests/116425_ejemplo.txt
 
 # dirs:
 # 	mkdir -p parser
@@ -38,7 +38,7 @@
 
 
 
-# # # Makefile Version Linux
+# # # # Makefile Version Linux
 .PHONY: all clean dirs
 
 CC = gcc
@@ -67,7 +67,7 @@ $(TARGET):
 	$(LDFLAGS) \
 	-o $(TARGET)
 
-	./$(TARGET) tests/prueba1.txt
+	./$(TARGET) tests/116425_ejemplo.txt
 
 dirs:
 	mkdir -p parser
@@ -84,7 +84,7 @@ clean:
 
 
 # Direcciones de test para Windows MSYS2 ó Ubuntu WSL:
-# cd C:\Users\Admin\Desktop\cm-compiler-main
-# cd /c/Users/Admin/Desktop/cm-compiler-main
-# cd /mnt/c/Users/Admin/Desktop/cm-compiler-main
+# cd C:\Users\Admin\Desktop\cm-compiler-main\cm-compiler-main1
+# cd /c/Users/Admin/Desktop/cm-compiler-main/cm-compiler-main1
+# cd /mnt/c/Users/Admin/Desktop/cm-compiler-main/cm-compiler-main1
 
