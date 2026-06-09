@@ -1,5 +1,6 @@
 === ANALISIS SEMANTICO ===
 
+Estado: omitido
 
 Informacion auxiliar: tabla de simbolos
 +---------+----------+------+--------------------+------------------------------+
